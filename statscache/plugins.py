@@ -1,5 +1,6 @@
 import abc
 
+import sqlalchemy as sa
 from sqlalchemy import create_engine
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import sessionmaker
@@ -7,7 +8,7 @@ from sqlalchemy.orm import scoped_session
 
 
 class BaseModelClass(object):
-    pass
+    id = sa.Column(sa.Integer, primary_key=True)
 
 
 BaseModel = declarative_base(cls=BaseModelClass)
@@ -32,7 +33,8 @@ class BasePlugin(object):
     summary = None
     description = None
 
-    def __init__(self, model):
+    def __init__(self, config, model):
+        self.config = config
         self.model = model
 
         required = ['name', 'summary', 'description']

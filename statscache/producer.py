@@ -1,5 +1,6 @@
 import datetime
 
+import fedmsg.meta
 import moksha.hub.api
 
 import statscache.plugins
@@ -15,12 +16,19 @@ class StatsProducerBase(moksha.hub.api.PollingProducer):
         self.name = type(self).__name__[:-len('Producer')]
         log.debug("%s initializing" % self.name)
         super(StatsProducerBase, self).__init__(hub)
+
+        fedmsg.meta.make_processors(**self.hub.config)
+
         # Find and save the StatsConsumer instance already created by the hub.
         # We are going to re-use its backends and db session.
         self.sister = statscache.utils.find_stats_consumer(self.hub)
-        self.plugins = statscache.utils.load_plugins(int(self.frequency))
+
+        self.plugins = statscache.utils.load_plugins(
+            int(self.frequency), self.hub.config)
+
         uri = self.hub.config['statscache.sqlalchemy.uri']
         statscache.plugins.create_tables(uri)
+
         log.debug("%s initialized with %r plugins" % (
             self.name, len(self.plugins)))
 
