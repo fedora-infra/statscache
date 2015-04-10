@@ -12,6 +12,18 @@ def find_stats_consumer(hub):
     raise ValueError('StatsConsumer not found.')
 
 
+class memoized(object):
+    def __init__(self, func):
+        self.func = func
+        self.result = None
+
+    def __call__(self, *args, **kwargs):
+        if self.result is None:
+            self.result = self.func(*args, **kwargs)
+        return self.result
+
+
+@memoized
 def load_plugins(frequency, config):
     plugins = []
     entry_points = pkg_resources.iter_entry_points('statscache.plugin')
@@ -25,3 +37,12 @@ def load_plugins(frequency, config):
             log.exception("Failed to load plugin %r" % entry_point)
 
     return plugins
+
+
+def get_model(name, frequency, config):
+    plugins = load_plugins(frequency, config)
+    print len(plugins), "is the num plugins."
+    for plugin in plugins:
+        if plugin.name == name:
+            return plugin.model
+    raise KeyError("No such model for %r %r" % (name, frequency))

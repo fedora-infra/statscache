@@ -1,4 +1,5 @@
 import abc
+import time
 
 import sqlalchemy as sa
 from sqlalchemy import create_engine
@@ -9,9 +10,23 @@ from sqlalchemy.orm import scoped_session
 
 class BaseModelClass(object):
     id = sa.Column(sa.Integer, primary_key=True)
+    timestamp = sa.Column(sa.DateTime, nullable=False, index=True)
 
 
-BaseModel = declarative_base(cls=BaseModelClass)
+class ScalarModelClass(BaseModelClass):
+    scalar = sa.Column(sa.Integer, nullable=False)
+
+    @classmethod
+    def to_csv(self, instances):
+        return "\n".join([
+            "%0.2f, %i" % (time.mktime(ins.timestamp.timetuple()), ins.scalar)
+            for ins in instances
+        ])
+
+
+#BaseModel = declarative_base(cls=BaseModelClass)
+ScalarModel = declarative_base(cls=ScalarModelClass)
+#CategorizedModel = declarative_base(cls=ScalarModelClass)
 
 
 def init_model(db_url):
@@ -22,8 +37,9 @@ def init_model(db_url):
 
 
 def create_tables(db_url):
-    engine = create_engine(db_url)
-    BaseModel.metadata.create_all(engine)
+    engine = create_engine(db_url, echo=True)
+    #BaseModel.metadata.create_all(engine)
+    ScalarModel.metadata.create_all(engine)
 
 
 class BasePlugin(object):
