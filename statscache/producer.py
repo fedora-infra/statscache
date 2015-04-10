@@ -2,7 +2,7 @@ import datetime
 
 import moksha.hub.api
 
-import statscache.plugins.base
+import statscache.plugins
 import statscache.utils
 
 import logging
@@ -20,13 +20,13 @@ class StatsProducerBase(moksha.hub.api.PollingProducer):
         self.sister = statscache.utils.find_stats_consumer(self.hub)
         self.plugins = statscache.utils.load_plugins(int(self.frequency))
         uri = self.hub.config['statscache.sqlalchemy.uri']
-        statscache.plugins.base.create_tables(uri)
+        statscache.plugins.create_tables(uri)
         log.debug("%s initialized with %r plugins" % (
             self.name, len(self.plugins)))
 
     def make_session(self):
         uri = self.hub.config['statscache.sqlalchemy.uri']
-        return statscache.plugins.base.init_model(uri)
+        return statscache.plugins.init_model(uri)
 
     def poll(self):
         now = datetime.datetime.utcnow()

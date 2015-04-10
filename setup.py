@@ -46,8 +46,5 @@ setup(
             "statscache_5s_producer = statscache.producer:FiveSecondProducer",
             "statscache_1m_producer = statscache.producer:OneMinuteProducer",
         ],
-        'statscache.plugin': [
-            "volume = statscache.plugins.volume",
-        ]
     },
 )
