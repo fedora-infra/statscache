@@ -15,12 +15,13 @@ def find_stats_consumer(hub):
 class memoized(object):
     def __init__(self, func):
         self.func = func
-        self.result = None
+        self.results = {}
 
     def __call__(self, *args, **kwargs):
-        if self.result is None:
-            self.result = self.func(*args, **kwargs)
-        return self.result
+        key = hash(str(args)) + hash(str(kwargs))
+        if self.results.get(key) is None:
+            self.results[key] = self.func(*args, **kwargs)
+        return self.results[key]
 
 
 @memoized
