@@ -39,10 +39,11 @@ def load_plugins(frequency, config):
     return plugins
 
 
-def get_model(name, frequency, config):
+def get_model(idx, frequency, config):
     plugins = load_plugins(frequency, config)
     print len(plugins), "is the num plugins."
-    for plugin in plugins:
-        if plugin.name == name:
+    for plugin in reversed(plugins):
+        print "  ", plugin.idx
+        if plugin.idx == idx:
             return plugin.model
-    raise KeyError("No such model for %r %r" % (name, frequency))
+    raise KeyError("No such model for %r %r" % (idx, frequency))

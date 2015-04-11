@@ -12,7 +12,7 @@ session = statscache.plugins.init_model(uri)
 
 @app.route('/<name>')
 def main(name):
-    model = statscache.utils.get_model(name, frequency=60, config=config)
+    model = statscache.utils.get_model(name, frequency=5, config=config)
     results = session.query(model).all()
     return model.to_csv(results)
 
