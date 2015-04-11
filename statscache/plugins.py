@@ -46,7 +46,7 @@ class CategorizedModelClass(BaseModelClass):
     def to_csv(cls, instances):
         results = cls.collate(instances)
         return "\n".join([
-            "%0.2f, %s" % (tstamp, ",".join(map(str, result.values())))
+            "%0.2f, %s" % (tstamp, ", ".join(map(str, result.values())))
             for tstamp, result in results.items()
         ])
 
