@@ -53,6 +53,7 @@ class CategorizedModelClass(BaseModelClass):
 
 ScalarModel = declarative_base(cls=ScalarModelClass)
 CategorizedModel = declarative_base(cls=CategorizedModelClass)
+BaseModel = declarative_base(cls=BaseModelClass)
 
 
 def init_model(db_url):
@@ -66,6 +67,7 @@ def create_tables(db_url):
     engine = create_engine(db_url, echo=True)
     ScalarModel.metadata.create_all(engine)
     CategorizedModel.metadata.create_all(engine)
+    BaseModel.metadata.create_all(engine)
 
 
 class BasePlugin(object):
