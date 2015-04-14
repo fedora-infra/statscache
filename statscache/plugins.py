@@ -51,8 +51,22 @@ class CategorizedModelClass(BaseModelClass):
         ])
 
 
+class CategorizedLogModelClass(BaseModelClass):
+    category = sa.Column(sa.UnicodeText, nullable=False, index=True)
+    message = sa.Column(sa.UnicodeText, nullable=False)
+
+    @classmethod
+    def to_csv(cls, instances):
+        return "\n".join([
+            "%0.2f, %s, %s" % (
+                instance.timestamp, instance.category, instance.message)
+            for instance in instances
+        ])
+
+
 ScalarModel = declarative_base(cls=ScalarModelClass)
 CategorizedModel = declarative_base(cls=CategorizedModelClass)
+CategorizedLogModel = declarative_base(cls=CategorizedLogModelClass)
 BaseModel = declarative_base(cls=BaseModelClass)
 
 
@@ -67,6 +81,7 @@ def create_tables(db_url):
     engine = create_engine(db_url, echo=True)
     ScalarModel.metadata.create_all(engine)
     CategorizedModel.metadata.create_all(engine)
+    CategorizedLogModel.metadata.create_all(engine)
     BaseModel.metadata.create_all(engine)
 
 
