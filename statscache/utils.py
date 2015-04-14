@@ -31,6 +31,10 @@ def load_plugins(frequency, config):
     for entry_point in entry_points:
         try:
             module = entry_point.load()
+            module_frequencies = getattr(module, 'FREQUENCIES')
+            if module_frequencies is not None and \
+                    frequency not in module_frequencies:
+                continue
             model = module.make_model(frequency)
             plugin = module.Plugin(config, model)
             plugins.append(plugin)
