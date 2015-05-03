@@ -32,6 +32,15 @@ class StatsProducerBase(moksha.hub.api.PollingProducer):
 
         log.debug("%s initialized with %r plugins" % (
             self.name, len(self.plugins)))
+        self.init_plugins()
+
+    def init_plugins(self):
+        for plugin in self.plugins:
+            initialize = getattr(plugin, 'initialize')
+            if initialize is None:
+                continue
+            plugin.initialize(self.make_session())
+        session.commit()
 
     def make_session(self):
         uri = self.hub.config['statscache.sqlalchemy.uri']
