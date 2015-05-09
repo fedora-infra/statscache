@@ -1,5 +1,6 @@
 import abc
 import collections
+import json
 import time
 
 import sqlalchemy as sa
@@ -59,9 +60,21 @@ class CategorizedLogModelClass(BaseModelClass):
     def to_csv(cls, instances):
         return "\n".join([
             "%0.2f, %s, %s" % (
-                instance.timestamp, instance.category, instance.message)
+                time.mktime(instance.timestamp.timetuple()),
+                instance.category, instance.message)
             for instance in instances
         ])
+
+    @classmethod
+    def to_json(cls, instances):
+        return json.dumps([
+            {
+                'timestamp': time.mktime(instance.timestamp.timetuple()),
+                'category': instance.category,
+                'message': instance.message
+            } for instance in instances
+        ])
+
 
 
 ScalarModel = declarative_base(cls=ScalarModelClass)
