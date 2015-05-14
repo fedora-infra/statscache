@@ -35,11 +35,12 @@ class StatsProducerBase(moksha.hub.api.PollingProducer):
         self.init_plugins()
 
     def init_plugins(self):
+        session = self.make_session()
         for plugin in self.plugins:
-            initialize = getattr(plugin, 'initialize')
+            initialize = getattr(plugin, 'initialize', None)
             if initialize is None:
                 continue
-            plugin.initialize(self.make_session())
+            plugin.initialize(session)
         session.commit()
 
     def make_session(self):
