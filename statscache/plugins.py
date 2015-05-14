@@ -75,11 +75,14 @@ class CategorizedLogModelClass(BaseModelClass):
             } for instance in instances
         ])
 
+class ConstrainedCategorizedLogModelClass(CategorizedLogModelClass):
+    category_constraint = sa.Column(sa.UnicodeText, nullable=True)
 
 
 ScalarModel = declarative_base(cls=ScalarModelClass)
 CategorizedModel = declarative_base(cls=CategorizedModelClass)
 CategorizedLogModel = declarative_base(cls=CategorizedLogModelClass)
+ConstrainedCategorizedLogModel = declarative_base(cls=ConstrainedCategorizedLogModelClass)
 BaseModel = declarative_base(cls=BaseModelClass)
 
 
@@ -95,6 +98,7 @@ def create_tables(db_url):
     ScalarModel.metadata.create_all(engine)
     CategorizedModel.metadata.create_all(engine)
     CategorizedLogModel.metadata.create_all(engine)
+    ConstrainedCategorizedLogModel.metadata.create_all(engine)
     BaseModel.metadata.create_all(engine)
 
 
