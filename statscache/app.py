@@ -21,7 +21,7 @@ def main(name):
     if callback:
         body = '{}({})'.format(callback, body)
     status = 200
-    mimetype = 'application/json'
+    mimetype = 'application/javascript'
     return flask.Response(
         response=body,
         status=status,
@@ -35,7 +35,7 @@ def plugin_layout(name):
     body = ''
     status = 404
     callback = flask.request.args.get('callback')
-    mimetype = 'application/json'
+    mimetype = 'application/javascript'
     if plugin and hasattr(plugin, 'layout'):
         body = json.dumps(plugin.layout)
         status = 200
