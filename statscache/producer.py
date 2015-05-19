@@ -4,6 +4,7 @@ import fedmsg.meta
 import moksha.hub.api
 
 import statscache.plugins
+import statscache.schedule
 import statscache.utils
 
 import logging
@@ -57,12 +58,17 @@ class StatsProducerBase(moksha.hub.api.PollingProducer):
 
 
 class OneSecondProducer(StatsProducerBase):
-    frequency = datetime.timedelta(seconds=1)
+    frequency = statscache.schedule.Schedule(second=range(0, 60, 1))
 
 
 class FiveSecondProducer(StatsProducerBase):
-    frequency = datetime.timedelta(seconds=5)
+    frequency = statscache.schedule.Schedule(second=range(0, 60, 5))
 
 
 class OneMinuteProducer(StatsProducerBase):
-    frequency = datetime.timedelta(seconds=60)
+    frequency = statscache.schedule.Schedule(second=[0])
+
+
+class OneDayProducer(StatsProducerBase):
+    # Every night at midnight (UTC)
+    frequency = statscache.schedule.Schedule(second=[0], minute=[0], hour=[0])
