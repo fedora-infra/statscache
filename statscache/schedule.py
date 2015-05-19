@@ -67,9 +67,7 @@ class Schedule(object):
     # For usage in 'time.sleep(self)'
     def __float__(self):
         """ Return the number of seconds until we should fire next """
-        value = (self.next() - datetime.datetime.utcnow()).total_seconds()
-        print "Returning", value
-        return value
+        return (self.next() - datetime.datetime.utcnow()).total_seconds()
 
     def __int__(self):
         return int(float(self))
