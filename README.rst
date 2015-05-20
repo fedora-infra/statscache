@@ -35,6 +35,8 @@ run it in ``statscache``.
 Lastly, in the main statscache repo directory, run: ``fedmsg-hub`` to start the
 daemon.  You should see lots of fun stats being stored in stdout.
 
+You ran run the tests with ``python setup.py test``.
+
 How it works
 ------------
 
