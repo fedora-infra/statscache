@@ -13,6 +13,7 @@ requires = [
 
 tests_require = [
     'nose',
+    'freezegun'
 ]
 
 setup(
