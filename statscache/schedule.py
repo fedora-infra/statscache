@@ -1,7 +1,8 @@
 import datetime
+import re
 
 
-__all__ = ['Schedule']
+__all__ = ['Schedule', 'Frequency']
 
 # A very small number
 EPSILON = 0.00001
@@ -44,9 +45,9 @@ class Schedule(object):
     def __iter__(self):
         return self
 
-    def next(self):
+    def next(self, now=None):
         """ Returns the datetime object representing when we'll fire next. """
-        now = datetime.datetime.utcnow()
+        now = now or datetime.datetime.utcnow()
         s, remainder = self.second.next(now, EPSILON)
         m, remainder = self.minute.next(now, remainder)
         h, remainder = self.hour.next(now, remainder)
@@ -71,3 +72,40 @@ class Schedule(object):
 
     def __int__(self):
         return int(float(self))
+
+
+class Frequency(object):
+    p = re.compile(r'(?P<value>\d{1,2})(?P<unit>h|m|s)')
+
+    def __init__(self, s):
+        m = self.p.match(s)
+        if m is None:
+            raise ValueError('%r is not allowed' % s)
+        value, unit = m.groups()
+        value = int(value)
+        self._schedule = None
+        if unit in ('s', 'm'):
+            if not (value > 0 and value <= 60):
+                raise ValueError('%r is not allowed' % s)
+            if unit == 's':
+                key = 'second'
+            else:
+                key = 'minute'
+            kwargs = {key: range(0, 60, value)}
+            self._schedule = Schedule(**kwargs)
+        elif unit == 'h':
+            if not (value > 0 and value <=24):
+                raise ValueError('%r is not allowed' % s)
+            self._schedule = Schedule(hour=range(0, 24, value))
+        else:
+            raise ValueError('%r is not allowed' % s)
+        self._s = s
+
+    def next(self, now=None):
+        return self._schedule.next(now)
+
+    def __str__(self):
+        return str(self._s)
+
+    def __repr__(self):
+        return '<Frequency: %s>' % str(self)
