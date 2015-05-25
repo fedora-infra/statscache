@@ -9,6 +9,8 @@ def get_description():
 
 requires = [
     'fedmsg',
+    'fedmsg_meta_fedora_infrastructure',
+    'sqlalchemy',
 ]
 
 tests_require = [

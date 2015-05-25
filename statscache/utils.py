@@ -31,6 +31,10 @@ def load_plugins(frequency, config):
     for entry_point in entry_points:
         try:
             module = entry_point.load()
+            module_frequencies = getattr(module, 'FREQUENCIES', None)
+            if module_frequencies is not None and \
+                    frequency not in module_frequencies:
+                continue
             model = module.make_model(frequency)
             plugin = module.Plugin(config, model)
             plugins.append(plugin)
@@ -40,9 +44,15 @@ def load_plugins(frequency, config):
     return plugins
 
 
-def get_model(idx, frequency, config):
+def get_plugin(idx, frequency, config):
     plugins = load_plugins(frequency, config)
     for plugin in reversed(plugins):
         if plugin.idx == idx:
-            return plugin.model
+            return plugin
+
+
+def get_model(idx, frequency, config):
+    plugin = get_plugin(idx, frequency, config)
+    if plugin:
+        return plugin.model
     raise KeyError("No such model for %r %r" % (idx, frequency))

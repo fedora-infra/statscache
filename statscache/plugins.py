@@ -1,5 +1,6 @@
 import abc
 import collections
+import json
 import time
 
 import sqlalchemy as sa
@@ -51,8 +52,37 @@ class CategorizedModelClass(BaseModelClass):
         ])
 
 
+class CategorizedLogModelClass(BaseModelClass):
+    category = sa.Column(sa.UnicodeText, nullable=False, index=True)
+    message = sa.Column(sa.UnicodeText, nullable=False)
+
+    @classmethod
+    def to_csv(cls, instances):
+        return "\n".join([
+            "%0.2f, %s, %s" % (
+                time.mktime(instance.timestamp.timetuple()),
+                instance.category, instance.message)
+            for instance in instances
+        ])
+
+    @classmethod
+    def to_json(cls, instances):
+        return json.dumps([
+            {
+                'timestamp': time.mktime(instance.timestamp.timetuple()),
+                'category': instance.category,
+                'message': instance.message
+            } for instance in instances
+        ])
+
+class ConstrainedCategorizedLogModelClass(CategorizedLogModelClass):
+    category_constraint = sa.Column(sa.UnicodeText, nullable=True)
+
+
 ScalarModel = declarative_base(cls=ScalarModelClass)
 CategorizedModel = declarative_base(cls=CategorizedModelClass)
+CategorizedLogModel = declarative_base(cls=CategorizedLogModelClass)
+ConstrainedCategorizedLogModel = declarative_base(cls=ConstrainedCategorizedLogModelClass)
 BaseModel = declarative_base(cls=BaseModelClass)
 
 
@@ -67,6 +97,8 @@ def create_tables(db_url):
     engine = create_engine(db_url, echo=True)
     ScalarModel.metadata.create_all(engine)
     CategorizedModel.metadata.create_all(engine)
+    CategorizedLogModel.metadata.create_all(engine)
+    ConstrainedCategorizedLogModel.metadata.create_all(engine)
     BaseModel.metadata.create_all(engine)
 
 
