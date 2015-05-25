@@ -59,7 +59,7 @@ class Schedule(object):
         return str(self.next() - datetime.datetime.utcnow())
 
     def __repr__(self):
-        "<Schedule, fires next in %s>" % str(self)
+        return "<Schedule, fires next in %s>" % str(self)
 
     # For serialization
     def __json__(self):
