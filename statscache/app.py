@@ -15,7 +15,7 @@ session = statscache.plugins.init_model(uri)
 def main(name):
     callback = flask.request.args.get('callback')
     #FIXME: Need to find a better way to pass 'frequency'
-    model = statscache.utils.get_model(name, frequency=60, config=config)
+    model = statscache.utils.get_model(name, config=config)
     results = session.query(model).all()
     body = model.to_json(results)
     if callback:
@@ -31,7 +31,7 @@ def main(name):
 @app.route('/<name>/layout')
 def plugin_layout(name):
     #FIXME: Need to find a better way to pass 'frequency'
-    plugin = statscache.utils.get_plugin(name, frequency=60, config=config)
+    plugin = statscache.utils.get_plugin(name, config=config)
     body = ''
     status = 404
     callback = flask.request.args.get('callback')
