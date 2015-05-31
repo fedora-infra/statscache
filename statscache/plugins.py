@@ -25,6 +25,7 @@ class ScalarModelClass(BaseModelClass):
             for ins in instances
         ])
 
+
 class CategorizedModelClass(BaseModelClass):
     category = sa.Column(sa.UnicodeText, nullable=False)
     scalar = sa.Column(sa.Integer, nullable=False)
@@ -75,6 +76,7 @@ class CategorizedLogModelClass(BaseModelClass):
             } for instance in instances
         ])
 
+
 class ConstrainedCategorizedLogModelClass(CategorizedLogModelClass):
     category_constraint = sa.Column(sa.UnicodeText, nullable=True)
 
@@ -82,7 +84,8 @@ class ConstrainedCategorizedLogModelClass(CategorizedLogModelClass):
 ScalarModel = declarative_base(cls=ScalarModelClass)
 CategorizedModel = declarative_base(cls=CategorizedModelClass)
 CategorizedLogModel = declarative_base(cls=CategorizedLogModelClass)
-ConstrainedCategorizedLogModel = declarative_base(cls=ConstrainedCategorizedLogModelClass)
+ConstrainedCategorizedLogModel = declarative_base(
+    cls=ConstrainedCategorizedLogModelClass)
 BaseModel = declarative_base(cls=BaseModelClass)
 
 
@@ -137,5 +140,5 @@ class BasePlugin(object):
         return idx
 
     @abc.abstractmethod
-    def handle(session, timestamp, messages):
+    def handle(self, session, timestamp, messages):
         pass
