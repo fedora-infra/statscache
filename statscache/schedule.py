@@ -101,7 +101,7 @@ class Schedule(object):
 
 
 class Frequency(object):
-    p = re.compile(r'(?P<value>\d{1,2})(?P<unit>h|m|s)')
+    p = re.compile(r'^(?P<value>\d{1,2})(?P<unit>h|m|s)$')
 
     def __init__(self, s):
         m = self.p.match(s)
