@@ -3,6 +3,7 @@ import unittest
 
 import freezegun
 import nose.tools
+import datetime
 
 
 from statscache.schedule import Schedule
@@ -49,6 +50,33 @@ class TestSchedule(unittest.TestCase):
     def test_working_with_time_sleep(self):
         s = Schedule(second=[1])
         time.sleep(s)  # Let's just make sure this doesn't crash
+
+    @freezegun.freeze_time('2012-01-14 04:00:00')
+    def test_prev_day_wrap_with_hour_minute_second_roundup(self):
+        s = Schedule(minute=[15], hour=[5])
+        self.assertEquals(
+            float(
+                (s.prev() - datetime.datetime.strptime(
+                    '2012-01-13', '%Y-%m-%d')).total_seconds()),
+            5 * 60 * 60 + 15 * 60 + 59)
+
+    @freezegun.freeze_time('2012-01-14 05:19:27')
+    def test_prev_second_roundup(self):
+        s = Schedule(hour=[5], minute=[10, 20], second=[0, 15, 30, 45])
+        self.assertEquals(
+            float(
+                (s.prev() - datetime.datetime.strptime(
+                    '2012-01-14', '%Y-%m-%d')).total_seconds()),
+            5 * 60 * 60 + 10 * 60 + 45)
+
+    @freezegun.freeze_time('2012-01-14 04:19:27')
+    def test_prev_minute_second_roundup(self):
+        s = Schedule(hour=[3, 5], minute=[10, 20], second=[0, 15, 30, 45])
+        self.assertEquals(
+            float(
+                (s.prev() - datetime.datetime.strptime(
+                    '2012-01-14', '%Y-%m-%d')).total_seconds()),
+            3 * 60 * 60 + 20 * 60 + 45)
 
     @nose.tools.raises(ValueError)
     def test_wrap_invalid_item(self):
