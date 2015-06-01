@@ -13,7 +13,7 @@ class TestSchedule(unittest.TestCase):
     @freezegun.freeze_time('2012-01-14 00:00:00')
     def test_basic(self):
         s = Schedule(minute=[15], hour=[5])
-        self.assertEquals(float(s), 5 * 60 * 60 + 15 * 60 + 1)
+        self.assertEquals(float(s), 5 * 60 * 60 + 15 * 60)
 
     @freezegun.freeze_time('2012-01-14 00:00:00')
     def test_one_second(self):
@@ -33,21 +33,39 @@ class TestSchedule(unittest.TestCase):
     @freezegun.freeze_time('2012-01-14 12:00:00')
     def test_wrap_day(self):
         s = Schedule(minute=[15], hour=[5])
-        self.assertEquals(float(s), 17 * 60 * 60 + 15 * 60 + 1)
+        self.assertEquals(float(s), 17 * 60 * 60 + 15 * 60)
 
     @freezegun.freeze_time('2012-01-14 12:15:00')
     def test_wrap_day_match_minute(self):
         s = Schedule(minute=[15], hour=[5])
-        self.assertEquals(float(s), 17 * 60 * 60 + 1)
+        self.assertEquals(float(s), 17 * 60 * 60)
 
     @freezegun.freeze_time('2012-01-14 12:16:00')
     def test_wrap_day_wrap_minute(self):
         s = Schedule(minute=[15], hour=[5])
-        self.assertEquals(float(s), 16 * 60 * 60 + 59 * 60 + 1)
+        self.assertEquals(float(s), 16 * 60 * 60 + 59 * 60)
+
+    @freezegun.freeze_time('2012-01-14 12:15:01')
+    def test_denomination_precedence_default(self):
+        # https://github.com/fedora-infra/statscache/issues/10
+        s = Schedule(minute=[15, 16])
+        self.assertEquals(float(s), 59)
+
+    @freezegun.freeze_time('2012-01-14 12:15:01')
+    def test_denomination_precedence_specified(self):
+        # https://github.com/fedora-infra/statscache/issues/10
+        s = Schedule(second=range(60), minute=[15])
+        self.assertEquals(float(s), 1)
 
     @freezegun.freeze_time('2012-01-14 00:00:00')
     def test_working_with_time_sleep(self):
         s = Schedule(second=[1])
+
+        value = float(s)
+        # Be careful not to sleep for 20 years if there's a bug
+        if value > 2:
+            raise ValueError("sleeping too long %r" % value)
+
         time.sleep(s)  # Let's just make sure this doesn't crash
 
     @nose.tools.raises(ValueError)

@@ -37,6 +37,12 @@ class Hour(Denomination):
 
 class Schedule(object):
     def __init__(self, second=None, minute=None, hour=None):
+
+        # Let higher order denominations precede lesser ones
+        # https://github.com/fedora-infra/statscache/issues/10
+        second = second or (minute and [0])
+        minute = minute or (hour and [0])
+
         self.second = Second(second)
         self.minute = Minute(minute)
         self.hour = Hour(hour)
