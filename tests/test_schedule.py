@@ -45,6 +45,18 @@ class TestSchedule(unittest.TestCase):
         s = Schedule(minute=[15], hour=[5])
         self.assertEquals(float(s), 16 * 60 * 60 + 59 * 60 + 1)
 
+    @freezegun.freeze_time('2012-01-14 12:15:01')
+    def test_denomination_precedence_default(self):
+        # https://github.com/fedora-infra/statscache/issues/10
+        s = Schedule(minute=[15, 16])
+        self.assertEquals(float(s), 59)
+
+    @freezegun.freeze_time('2012-01-14 12:15:01')
+    def test_denomination_precedence_specified(self):
+        # https://github.com/fedora-infra/statscache/issues/10
+        s = Schedule(second=range(60), minute=[15])
+        self.assertEquals(float(s), 1)
+
     @freezegun.freeze_time('2012-01-14 00:00:00')
     def test_working_with_time_sleep(self):
         s = Schedule(second=[1])
