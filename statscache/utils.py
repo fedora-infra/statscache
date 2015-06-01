@@ -1,5 +1,7 @@
 import pkg_resources
 
+import stastcache.plugins
+
 import logging
 log = logging.getLogger("fedmsg")
 
@@ -25,34 +27,30 @@ class memoized(object):
 
 
 @memoized
-def load_plugins(frequency, config):
-    plugins = []
+def load_plugins(config):
+    plugins = {}
     entry_points = pkg_resources.iter_entry_points('statscache.plugin')
     for entry_point in entry_points:
         try:
             module = entry_point.load()
-            module_frequencies = getattr(module, 'FREQUENCIES', None)
-            if module_frequencies is not None and \
-                    frequency not in module_frequencies:
-                continue
-            model = module.make_model(frequency)
-            plugin = module.Plugin(config, model)
-            plugins.append(plugin)
+            for item in dir(module):
+                attr = getattr(module, item, None)
+                if issubclass(attr, statscache.plugins.BasePlugin):
+                    plugin = attr()
+                    plugins[plugin.idx] = plugin
         except Exception:
             log.exception("Failed to load plugin %r" % entry_point)
 
     return plugins
 
 
-def get_plugin(idx, frequency, config):
-    plugins = load_plugins(frequency, config)
-    for plugin in reversed(plugins):
-        if plugin.idx == idx:
-            return plugin
+def get_plugin(idx, config):
+    plugins = load_plugins(config)
+    return plugins.get(idx)
 
 
-def get_model(idx, frequency, config):
-    plugin = get_plugin(idx, frequency, config)
+def get_model(idx, config):
+    plugin = get_plugin(idx, config)
     if plugin:
         return plugin.model
-    raise KeyError("No such model for %r %r" % (idx, frequency))
+    raise KeyError("No such model for %r" % (idx))
