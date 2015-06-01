@@ -76,7 +76,7 @@ class TestSchedule(unittest.TestCase):
             float(
                 (s.prev() - datetime.datetime.strptime(
                     '2012-01-13', '%Y-%m-%d')).total_seconds()),
-            5 * 60 * 60 + 15 * 60 + 59)
+            5 * 60 * 60 + 15 * 60)
 
     @freezegun.freeze_time('2012-01-14 05:19:27')
     def test_prev_second_roundup(self):
