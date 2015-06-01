@@ -48,6 +48,8 @@ class Hour(Denomination):
 class Schedule(object):
     def __init__(self, second=None, minute=None, hour=None):
 
+        self.check_inputs(second=second, minute=minute, hour=hour)
+
         # Let higher order denominations precede lesser ones
         # https://github.com/fedora-infra/statscache/issues/10
         second = second or (minute and [0])
@@ -56,6 +58,12 @@ class Schedule(object):
         self.second = Second(second)
         self.minute = Minute(minute)
         self.hour = Hour(hour)
+
+    @classmethod
+    def check_inputs(cls, **kwargs):
+        for key, value in kwargs.items():
+            if value == []:
+                raise ValueError("Illegal value for %s %r" % (key, value))
 
     def __iter__(self):
         return self
