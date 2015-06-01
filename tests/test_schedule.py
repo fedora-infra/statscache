@@ -60,6 +60,12 @@ class TestSchedule(unittest.TestCase):
     @freezegun.freeze_time('2012-01-14 00:00:00')
     def test_working_with_time_sleep(self):
         s = Schedule(second=[1])
+
+        value = float(s)
+        # Be careful not to sleep for 20 years if there's a bug
+        if value > 2:
+            raise ValueError("sleeping too long %r" % value)
+
         time.sleep(s)  # Let's just make sure this doesn't crash
 
     @nose.tools.raises(ValueError)
