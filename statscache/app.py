@@ -11,10 +11,10 @@ config = fedmsg.config.load_config()
 uri = config['statscache.sqlalchemy.uri']
 session = statscache.plugins.init_model(uri)
 
+
 @app.route('/<name>')
 def main(name):
     callback = flask.request.args.get('callback')
-    #FIXME: Need to find a better way to pass 'frequency'
     model = statscache.utils.get_model(name, config=config)
     results = session.query(model).all()
     body = model.to_json(results)
@@ -28,9 +28,9 @@ def main(name):
         mimetype=mimetype
     )
 
+
 @app.route('/<name>/layout')
 def plugin_layout(name):
-    #FIXME: Need to find a better way to pass 'frequency'
     plugin = statscache.utils.get_plugin(name, config=config)
     body = ''
     status = 404
@@ -52,4 +52,3 @@ if __name__ == '__main__':
     app.run(
         debug=True,
     )
-

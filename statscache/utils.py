@@ -1,6 +1,7 @@
+import inspect
 import pkg_resources
 
-import stastcache.plugins
+import statscache.plugins
 
 import logging
 log = logging.getLogger("fedmsg")
@@ -35,8 +36,10 @@ def load_plugins(config):
             module = entry_point.load()
             for item in dir(module):
                 attr = getattr(module, item, None)
+                if not inspect.isclass(attr):
+                    continue
                 if issubclass(attr, statscache.plugins.BasePlugin):
-                    plugin = attr()
+                    plugin = attr(config)
                     plugins[plugin.idx] = plugin
         except Exception:
             log.exception("Failed to load plugin %r" % entry_point)
