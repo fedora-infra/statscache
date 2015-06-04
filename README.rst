@@ -23,6 +23,8 @@ being that we can then build neater smarter frontends that can render
 fedmsg-based activity very quickly.. and perhaps later drill-down into the
 *details* kept in datagrepper.
 
+It is kind of like a `data mart <http://en.wikipedia.org/wiki/Data_mart>`_.
+
 How to run it
 -------------
 
