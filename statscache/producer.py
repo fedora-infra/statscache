@@ -35,7 +35,7 @@ class StatsProducerBase(moksha.hub.api.PollingProducer):
 
     def init_plugins(self):
         session = self.make_session()
-        for plugin in self.plugins:
+        for plugin in self.plugins.values():
             initialize = getattr(plugin, 'initialize', None)
             if initialize is None:
                 continue
