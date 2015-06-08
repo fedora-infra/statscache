@@ -24,8 +24,7 @@ class StatsProducerBase(moksha.hub.api.PollingProducer):
         # We are going to re-use its backends and db session.
         self.sister = statscache.utils.find_stats_consumer(self.hub)
 
-        self.plugins = statscache.utils.load_plugins(
-            int(self.frequency), self.hub.config)
+        self.plugins = statscache.utils.load_plugins(self.hub.config)
 
         uri = self.hub.config['statscache.sqlalchemy.uri']
         statscache.plugins.create_tables(uri)
@@ -56,11 +55,11 @@ class StatsProducerBase(moksha.hub.api.PollingProducer):
         n = len(bucket)
         log.info("%s called with %i items in the bucket." % (self.name, n))
 
-        for plugin in self.plugins:
+        for plugin in self.plugins.values():
             log.info("  Calling %r" % plugin.name)
             session = self.make_session()
             try:
-                plugin.handle(session, now, bucket)
+                plugin.handle(session, bucket)
                 session.commit()
             except:
                 log.exception('Error during plugin %r handling.' % plugin)
