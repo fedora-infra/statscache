@@ -1,5 +1,6 @@
 include README.rst
-graft fedmsg.d/
+recursive-include fedmsg.d *.py
+recursive-include apache *
 include CHANGELOG.rst
 include COPYING
 include COPYING.LESSER
