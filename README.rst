@@ -31,8 +31,8 @@ How to run it
 Create a virtualenv, and git clone this directory and the statscache_plugins
 repo.
 
-Run ``python setup.py develop`` in the statscache_plugins dir first and then
-run it in ``statscache``.
+Run ``python setup.py develop`` in the ``statscache`` dir first and then run it
+in ``statscache``.
 
 Lastly, in the main statscache repo directory, run: ``fedmsg-hub`` to start the
 daemon.  You should see lots of fun stats being stored in stdout.
