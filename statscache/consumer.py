@@ -21,6 +21,7 @@ class StatsConsumer(fedmsg.consumers.FedmsgConsumer):
             'OneSecond': [],
             'FiveSecond': [],
             'OneMinute': [],
+            'OneDay': [],
         }
 
     def consume(self, raw_msg):
