@@ -12,7 +12,12 @@ log = logging.getLogger("fedmsg")
 
 
 class StatsProducerBase(moksha.hub.api.PollingProducer):
-    """ An abstract base class for our other producers. """
+    """
+    An abstract base class for our other producers. Creating a functional
+    subclass requires co-ordinating a change in
+    statscache.consumer.StatsConsumer to ensure that the appropriate bucket
+    exists.
+    """
     def __init__(self, hub):
         self.name = type(self).__name__[:-len('Producer')]
         log.debug("%s initializing" % self.name)
@@ -34,6 +39,7 @@ class StatsProducerBase(moksha.hub.api.PollingProducer):
         self.init_plugins()
 
     def init_plugins(self):
+        """ Allow plugins to initialize themselves using the database """
         session = self.make_session()
         for plugin in self.plugins.values():
             initialize = getattr(plugin, 'initialize', None)
@@ -43,10 +49,14 @@ class StatsProducerBase(moksha.hub.api.PollingProducer):
         session.commit()
 
     def make_session(self):
+        """ Initiate database connection """
         uri = self.hub.config['statscache.sqlalchemy.uri']
         return statscache.plugins.init_model(uri)
 
     def poll(self):
+        """
+        Empty the associated bucket and send to each plugin for processing.
+        """
         now = datetime.datetime.utcnow()
 
         bucket = self.sister.buckets[self.name]

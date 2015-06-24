@@ -46,6 +46,7 @@ class Hour(Denomination):
 
 
 class Schedule(object):
+    """ An iterable class for repeating, possibly irregular time intervals """
     def __init__(self, second=None, minute=None, hour=None):
 
         self.check_inputs(second=second, minute=minute, hour=hour)
@@ -78,9 +79,7 @@ class Schedule(object):
             datetime.timedelta(days=remainder)
 
     def prev(self, now=None):
-        """
-        Returns the datetime object representing when we've fired earlier.
-        """
+        """ Returns the datetime object representing when we last fired """
         now = now or datetime.datetime.utcnow()
         s, remainder = self.second.prev(now, EPSILON)
         m, remainder = self.minute.prev(now, remainder)
@@ -115,6 +114,7 @@ class Schedule(object):
 
 
 class Frequency(object):
+    """ Similar as Schedule except only for simple, regular time intervals """
     p = re.compile(r'^(?P<value>\d{1,2})(?P<unit>h|m|s)$')
 
     def __init__(self, s):
