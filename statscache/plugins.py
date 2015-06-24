@@ -128,6 +128,9 @@ class BasePlugin(object):
 
     @property
     def idx(self):
+        """
+        Stringify this plugin's name to use as a (hopefully) unique identifier
+        """
         idx = self.name.lower().replace(" ", "-")
 
         bad = ['"', "'", '(', ')', '*', '&', '?', ',']
@@ -141,4 +144,5 @@ class BasePlugin(object):
 
     @abc.abstractmethod
     def handle(self, session, timestamp, messages):
+        """ Process messages produced as of the given timestamp """
         pass

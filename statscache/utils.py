@@ -8,6 +8,7 @@ log = logging.getLogger("fedmsg")
 
 
 def find_stats_consumer(hub):
+    """ Find the caching StatsConsumer associated with the given hub """
     for cons in hub.consumers:
         if 'StatsConsumer' in str(type(cons)):
             return cons
@@ -29,6 +30,11 @@ class memoized(object):
 
 @memoized
 def load_plugins(config):
+    """
+    Load all plugin modules registered as entry points under statscache.plugin,
+    find all plugin classes contained directly under those modules, and return
+    an instantiated copy of each one in a list.
+    """
     plugins = {}
     entry_points = pkg_resources.iter_entry_points('statscache.plugin')
     for entry_point in entry_points:
