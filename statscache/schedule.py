@@ -114,7 +114,7 @@ class Schedule(object):
 
 
 class Frequency(object):
-    """ Similar as Schedule except only for simple, regular time intervals """
+    """ Similar to Schedule except only for simple, regular time intervals """
     p = re.compile(r'^(?P<value>\d{1,2})(?P<unit>h|m|s)$')
 
     def __init__(self, s):
