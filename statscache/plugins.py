@@ -124,20 +124,20 @@ class BasePlugin(object):
                 raise ValueError("%r must define %r" % (self, attr))
 
     @property
-    def idx(self):
+    def ident(self):
         """
         Stringify this plugin's name to use as a (hopefully) unique identifier
         """
-        idx = self.name.lower().replace(" ", "-")
+        ident = self.name.lower().replace(" ", "-")
 
         bad = ['"', "'", '(', ')', '*', '&', '?', ',']
         replacements = dict(zip(bad, [''] * len(bad)))
         for a, b in replacements.items():
-            idx = idx.replace(a, b)
+            ident = ident.replace(a, b)
         frequency = getattr(self, 'frequency', None)
         if frequency:
-            idx += '-{}'.format(frequency)
-        return idx
+            ident += '-{}'.format(frequency)
+        return ident
 
     @abc.abstractmethod
     def handle(self, session, timestamp, messages):

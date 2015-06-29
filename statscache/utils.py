@@ -66,20 +66,20 @@ def init_plugins(config):
     for plugin_class in plugin_classes:
         try:
             plugin = plugin_class(config)
-            plugins[plugin.idx] = plugin
-            log.info("Initialized plugin %r" % plugin.idx)
+            plugins[plugin.ident] = plugin
+            log.info("Initialized plugin %r" % plugin.ident)
         except Exception:
             log.exception("Failed to initialize plugin %r" % plugin_class)
     return plugins
 
 
-def get_plugin(idx, config):
+def get_plugin(ident, config):
     plugins = init_plugins(config)
-    return plugins.get(idx)
+    return plugins.get(ident)
 
 
-def get_model(idx, config):
-    plugin = get_plugin(idx, config)
+def get_model(ident, config):
+    plugin = get_plugin(ident, config)
     if plugin:
         return plugin.model
-    raise KeyError("No such model for %r" % (idx))
+    raise KeyError("No such model for %r" % (ident))
