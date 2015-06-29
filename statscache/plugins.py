@@ -116,10 +116,7 @@ class BasePlugin(object):
 
     def __init__(self, config, model=None):
         self.config = config
-        if model:
-            self.model = model
-        else:
-            self.model = self.make_model()
+        self.model = model or self.make_model()
 
         required = ['name', 'summary', 'description']
         for attr in required:
