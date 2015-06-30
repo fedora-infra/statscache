@@ -25,9 +25,9 @@ class StatsProducerBase(moksha.hub.api.PollingProducer):
 
         fedmsg.meta.make_processors(**self.hub.config)
 
-        # Find and save the StatsConsumer instance already created by the hub.
-        # We are going to re-use its backends and db session.
-        self.sister = statscache.utils.find_stats_consumer(self.hub)
+        # set up the cache and connect to the consumer
+        self.cache = []
+        statscache.utils.find_stats_consumer(self.hub).producers.append(self)
 
         self.plugins = statscache.utils.init_plugins(self.hub.config)
 
@@ -53,23 +53,27 @@ class StatsProducerBase(moksha.hub.api.PollingProducer):
         uri = self.hub.config['statscache.sqlalchemy.uri']
         return statscache.plugins.init_model(uri)
 
+    def buffer(self, message):
+        self.cache.append(message)
+
     def poll(self):
         """
-        Empty the associated bucket and send to each plugin for processing.
+        Empty the cache and distribute the contents to each plugin for
+        processing.
         """
         now = datetime.datetime.utcnow()
 
-        bucket = self.sister.buckets[self.name]
-        self.sister.buckets[self.name] = []
+        cache = self.cache
+        self.cache = []
 
-        n = len(bucket)
-        log.info("%s called with %i items in the bucket." % (self.name, n))
+        n = len(cache)
+        log.info("%s called with %i items in the cache." % (self.name, n))
 
         for plugin in self.plugins.values():
             log.info("  Calling %r" % plugin.name)
             session = self.make_session()
             try:
-                plugin.handle(session, bucket)
+                plugin.handle(session, cache)
                 session.commit()
             except:
                 log.exception('Error during plugin %r handling.' % plugin)
