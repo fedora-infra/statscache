@@ -81,17 +81,17 @@ class StatsProducerBase(moksha.hub.api.PollingProducer):
 
 
 class OneSecondProducer(StatsProducerBase):
-    frequency = statscache.schedule.Schedule(second=range(0, 60, 1))
+    frequency = statscache.plugins.Frequency(second=1)
 
 
 class FiveSecondProducer(StatsProducerBase):
-    frequency = statscache.schedule.Schedule(second=range(0, 60, 5))
+    frequency = statscache.plugins.Frequency(second=5)
 
 
 class OneMinuteProducer(StatsProducerBase):
-    frequency = statscache.schedule.Schedule(second=[0])
+    frequency = statscache.plugins.Frequency(minutes=1)
 
 
 class OneDayProducer(StatsProducerBase):
     # Every night at midnight (UTC)
-    frequency = statscache.schedule.Schedule(second=[0], minute=[0], hour=[0])
+    frequency = statscache.plugins.Frequency(days=1)
