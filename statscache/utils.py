@@ -1,5 +1,6 @@
 import inspect
 import pkg_resources
+from collections import defaultdict
 
 import statscache.plugins
 
@@ -14,18 +15,6 @@ def find_stats_consumer(hub):
             return cons
 
     raise ValueError('StatsConsumer not found.')
-
-
-class memoized(object):
-    def __init__(self, func):
-        self.func = func
-        self.results = {}
-
-    def __call__(self, *args, **kwargs):
-        key = hash(str(args)) + hash(str(kwargs))
-        if self.results.get(key) is None:
-            self.results[key] = self.func(*args, **kwargs)
-        return self.results[key]
 
 
 def load_plugins():
@@ -59,23 +48,15 @@ def load_plugins():
 plugin_classes = load_plugins()
 
 
-@memoized
-def init_plugins(config):
-    """ Return a mapping of plugin identifiers to initialized plugins """
-    plugins = {}
-    for plugin_class in plugin_classes:
-        try:
-            plugin = plugin_class(config)
-            plugins[plugin.ident] = plugin
-            log.info("Initialized plugin %r" % plugin.ident)
-        except Exception:
-            log.exception("Failed to initialize plugin %r" % plugin_class)
-    return plugins
+plugin_table = defaultdict(dict)
+
+
+def register_plugin(plugin, config):
+    plugin_table[hash(str(config))][plugin.ident] = plugin
 
 
 def get_plugin(ident, config):
-    plugins = init_plugins(config)
-    return plugins.get(ident)
+    return plugin_table[hash(str(config))].get(ident)
 
 
 def get_model(ident, config):

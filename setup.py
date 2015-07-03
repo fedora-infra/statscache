@@ -45,10 +45,7 @@ setup(
             "statscache_consumer = statscache.consumer:StatsConsumer",
         ],
         'moksha.producer': [
-            "statscache_1s_producer = statscache.producer:OneSecondProducer",
-            "statscache_5s_producer = statscache.producer:FiveSecondProducer",
-            "statscache_1m_producer = statscache.producer:OneMinuteProducer",
-            "statscache_1d_producer = statscache.producer:OneDayProducer",
+            "statscache_producers = statscache.producer:producers",
         ],
     },
 )

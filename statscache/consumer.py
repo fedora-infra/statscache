@@ -20,6 +20,10 @@ class StatsConsumer(fedmsg.consumers.FedmsgConsumer):
         log.debug("statscache consumer initialized")
         self.producers = []
 
+    def register(self, producer):
+        """ Method to register a producer """
+        self.producers.append(producer)
+
     def consume(self, raw_msg):
         """ Receive a message and enqueue it onto each bucket """
         topic, msg = raw_msg['topic'], raw_msg['body']

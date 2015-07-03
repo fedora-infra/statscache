@@ -126,7 +126,7 @@ class BasePlugin(object):
                 raise ValueError("%r must define %r" % (self, attr))
         if (not isinstance(self.frequency, Frequency) and
             self.frequency is not None):
-            raise TypeError(("The 'frequency' attribute of %r must be an " + 
+            raise TypeError(("The 'frequency' attribute of %r must be an " +
                 "an instance of %r if present") % (self, Frequency))
 
     @property
