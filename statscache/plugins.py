@@ -112,7 +112,7 @@ class BasePlugin(object):
     name = None
     summary = None
     description = None
-    frequency = None # this can just be None
+    frequency = None # this may be left as None
 
     datagrepper_endpoint = 'https://apps.fedoraproject.org/datagrepper/raw/'
 
@@ -151,26 +151,44 @@ class BasePlugin(object):
         pass
 
 
-class Frequency(datetime.timedelta):
-    """ timedelta extension with nicer printing """
+class Frequency(object):
+    """ A repeating interval synchronized on UTC midnight """
     def __init__(self, days=0, hours=0, minutes=0, seconds=0):
-        super(Frequency, self).__init__(days=days,
-                                        seconds=(hours*60+minutes)*60+seconds)
+        self.interval = datetime.timedelta(days=days, hours=hours,
+            minutes=minutes, seconds=seconds)
+
+    def __eq__(self, other):
+        if isinstance(other, Frequency):
+            other = other.interval
+        elif not isinstance(other, datetime.timedelta):
+            raise NotImplementedError()
+        return self.interval == other
+
+    def __ne__(self, other):
+        return not (self == other)
+
+    def __hash__(self):
+        # the value of the object is uniquely determined by its interval
+        return hash(self.interval)
+
+    @property
+    def days(self):
+        return self.interval.days
 
     @property
     def hours(self):
-        return self.seconds // (60*60)
+        return self.interval.seconds // (60*60)
 
     @property
     def minutes(self):
-        return (self.seconds // 60) % 60
+        return (self.interval.seconds // 60) % 60
 
     @property
-    def mod_seconds(self):
-        return self.seconds % 60
+    def seconds(self):
+        return self.interval.seconds % 60
 
     def __str__(self):
-        # Pretty-print a timedelta in the format [[[#d]#h]#m]#s
+        # Pretty-print in the format [[[#d]#h]#m]#s
         s = ''
         if self.days:
             s = str(days) + 'd'
@@ -178,8 +196,8 @@ class Frequency(datetime.timedelta):
             s = ''.join([s, str(self.hours), 'h'])
         if self.minutes:
             s = ''.join([s, str(self.minutes), 'm'])
-        if self.mod_seconds or not s:
-            s = ''.join([s, str(self.mod_seconds), 's'])
+        if self.seconds or not s:
+            s = ''.join([s, str(self.seconds), 's'])
         return s
 
     def __repr__(self):
@@ -187,16 +205,31 @@ class Frequency(datetime.timedelta):
         for (kw, arg) in [('days', self.days),
                           ('hours', self.hours),
                           ('minutes', self.minutes),
-                          ('seconds', self.mod_seconds)]:
+                          ('seconds', self.seconds)]:
             if arg:
                 kwargs.append('='.join([kw, str(arg)]))
-        return ''.join([self.__name__, '(', ','.join(kwargs), ')'])
+        return ''.join([type(self).__name__, '(', ','.join(kwargs), ')'])
+
+    def time_to_fire(self, now=datetime.datetime.utcnow()):
+        """ Get the remaining time-to-fire synchronized on UTC midnight """
+        mid = datetime.datetime.utcnow().replace(hour=0,
+                                                 minute=0,
+                                                 second=0,
+                                                 microsecond=0)
+        rem = self.interval.seconds - (now-mid).seconds % self.interval.seconds
+        return datetime.timedelta(seconds=rem - 1,
+                                  microseconds=10**6-now.microsecond)
+
+    def last(self, now=datetime.datetime.utcnow()):
+        """ Get the last time-to-fire synchronized on UTC midnight """
+        return self.next(now=now) - self.interval
+
+    def next(self, now=datetime.datetime.utcnow()):
+        """ Get the next time-to-fire synchronized on UTC midnight """
+        return now + self.time_to_fire(now=now)
 
     def __json__(self):
-        return self.total_seconds()
-
-    def __int__(self):
-        return self.total_seconds()
+        return self.interval.seconds
 
     def __float__(self):
-        return int(self) + self.microseconds / 1000
+        return self.time_to_fire().total_seconds()
