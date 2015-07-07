@@ -2,7 +2,6 @@ import abc
 import collections
 import json
 import time
-import datetime
 
 import sqlalchemy as sa
 from sqlalchemy import create_engine
@@ -112,11 +111,12 @@ class BasePlugin(object):
     name = None
     summary = None
     description = None
-    frequency = None # this may be left as None
+    interval = None # this must be either None or a datetime.timedelta instance
 
     datagrepper_endpoint = 'https://apps.fedoraproject.org/datagrepper/raw/'
 
-    def __init__(self, config, model=None):
+    def __init__(self, frequency, config, model=None):
+        self.frequency = frequency
         self.config = config
         self.model = model or self.make_model()
 
@@ -124,10 +124,6 @@ class BasePlugin(object):
         for attr in required:
             if not getattr(self, attr):
                 raise ValueError("%r must define %r" % (self, attr))
-        if (not isinstance(self.frequency, Frequency) and
-            self.frequency is not None):
-            raise TypeError(("The 'frequency' attribute of %r must be an " +
-                "an instance of %r if present") % (self, Frequency))
 
     @property
     def ident(self):
@@ -149,87 +145,3 @@ class BasePlugin(object):
     def handle(self, session, timestamp, messages):
         """ Process messages produced as of the given timestamp """
         pass
-
-
-class Frequency(object):
-    """ A repeating interval synchronized on UTC midnight """
-    def __init__(self, days=0, hours=0, minutes=0, seconds=0):
-        self.interval = datetime.timedelta(days=days, hours=hours,
-            minutes=minutes, seconds=seconds)
-
-    def __eq__(self, other):
-        if isinstance(other, Frequency):
-            other = other.interval
-        elif not isinstance(other, datetime.timedelta):
-            raise NotImplementedError()
-        return self.interval == other
-
-    def __ne__(self, other):
-        return not (self == other)
-
-    def __hash__(self):
-        # the value of the object is uniquely determined by its interval
-        return hash(self.interval)
-
-    @property
-    def days(self):
-        return self.interval.days
-
-    @property
-    def hours(self):
-        return self.interval.seconds // (60*60)
-
-    @property
-    def minutes(self):
-        return (self.interval.seconds // 60) % 60
-
-    @property
-    def seconds(self):
-        return self.interval.seconds % 60
-
-    def __str__(self):
-        # Pretty-print in the format [[[#d]#h]#m]#s
-        s = ''
-        if self.days:
-            s = str(days) + 'd'
-        if self.hours:
-            s = ''.join([s, str(self.hours), 'h'])
-        if self.minutes:
-            s = ''.join([s, str(self.minutes), 'm'])
-        if self.seconds or not s:
-            s = ''.join([s, str(self.seconds), 's'])
-        return s
-
-    def __repr__(self):
-        kwargs = []
-        for (kw, arg) in [('days', self.days),
-                          ('hours', self.hours),
-                          ('minutes', self.minutes),
-                          ('seconds', self.seconds)]:
-            if arg:
-                kwargs.append('='.join([kw, str(arg)]))
-        return ''.join([type(self).__name__, '(', ','.join(kwargs), ')'])
-
-    def time_to_fire(self, now=datetime.datetime.utcnow()):
-        """ Get the remaining time-to-fire synchronized on UTC midnight """
-        mid = datetime.datetime.utcnow().replace(hour=0,
-                                                 minute=0,
-                                                 second=0,
-                                                 microsecond=0)
-        rem = self.interval.seconds - (now-mid).seconds % self.interval.seconds
-        return datetime.timedelta(seconds=rem - 1,
-                                  microseconds=10**6-now.microsecond)
-
-    def last(self, now=datetime.datetime.utcnow()):
-        """ Get the last time-to-fire synchronized on UTC midnight """
-        return self.next(now=now) - self.interval
-
-    def next(self, now=datetime.datetime.utcnow()):
-        """ Get the next time-to-fire synchronized on UTC midnight """
-        return now + self.time_to_fire(now=now)
-
-    def __json__(self):
-        return self.interval.seconds
-
-    def __float__(self):
-        return self.time_to_fire().total_seconds()

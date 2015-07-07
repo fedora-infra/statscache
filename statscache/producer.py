@@ -5,7 +5,7 @@ import fedmsg.meta
 import moksha.hub.api
 
 import statscache.plugins
-import statscache.schedule
+import statscache.frequency
 import statscache.utils
 
 import logging
@@ -39,7 +39,7 @@ class StatsProducerBase(moksha.hub.api.PollingProducer):
         self.plugins = []
         for plugin_class in self.plugin_classes:
             try:
-                plugin = plugin_class(self.hub.config)
+                plugin = plugin_class(self.frequency, self.hub.config)
                 initialize = getattr(plugin, 'initialize', None)
                 if initialize is not None:
                     plugin.initialize(session)
@@ -88,16 +88,22 @@ def factory():
     Producer class factory based on the frequencies of the available plugin
     classes.
     """
-    plugins_by_frequency = defaultdict(list)
+    plugins_by_interval = defaultdict(list)
     for plugin_class in statscache.utils.plugin_classes:
-        frequency = plugin_class.frequency
-        if frequency is not None:
-            plugins_by_frequency[frequency].append(plugin_class)
+        interval = plugin_class.interval
+        if isinstance(interval, datetime.timedelta):
+            plugins_by_interval[interval].append(plugin_class)
 
-    for frequency, plugin_classes in plugins_by_frequency.items():
+    # synchronize all frequencies on UTC midnight of current day
+    epoch = datetime.datetime.utcnow().replace(hour=0,
+                                               minute=0,
+                                               second=0,
+                                               microsecond=0)
+    for interval, plugin_classes in plugins_by_interval.items():
         class StatsProducerAnon(StatsProducerBase):
             """ Dynamically generated class for a specific frequency """
             pass # we need to programmatically set class attributes
+        frequency = statscache.frequency.Frequency(interval, epoch)
         StatsProducerAnon.frequency = frequency
         StatsProducerAnon.plugin_classes = plugin_classes
         StatsProducerAnon.__name__ = 'StatsProducer' + str(frequency)
