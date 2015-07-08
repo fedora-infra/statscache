@@ -51,20 +51,23 @@ class Frequency(object):
                 kwargs.append('='.join([kw, str(arg)]))
         return ''.join([type(self).__name__, '(', ','.join(kwargs), ')'])
 
-    def time_to_fire(self, now=datetime.datetime.utcnow()):
+    def time_to_fire(self, now=None):
         """ Get the remaining time-to-fire synchronized on epoch """
+        now = now or datetime.datetime.utcnow()
         sec = self.interval.seconds + self.interval.days * 24 * 60 * 60
         diff = now - self.epoch
         rem = sec - (diff.seconds + diff.days * 24 * 60 * 60) % sec
         return datetime.timedelta(seconds=rem - 1,
                                   microseconds=10**6 - now.microsecond)
 
-    def last(self, now=datetime.datetime.utcnow()):
+    def last(self, now=None):
         """ Get the last time-to-fire synchronized on epoch """
+        now = now or datetime.datetime.utcnow()
         return self.next(now=now) - self.interval
 
-    def next(self, now=datetime.datetime.utcnow()):
+    def next(self, now=None):
         """ Get the next time-to-fire synchronized on epoch """
+        now = now or datetime.datetime.utcnow()
         return now + self.time_to_fire(now=now)
 
     def __json__(self):
