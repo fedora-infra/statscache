@@ -1,10 +1,11 @@
 import datetime
+from collections import defaultdict
 
 import fedmsg.meta
 import moksha.hub.api
 
 import statscache.plugins
-import statscache.schedule
+import statscache.frequency
 import statscache.utils
 
 import logging
@@ -13,81 +14,100 @@ log = logging.getLogger("fedmsg")
 
 class StatsProducerBase(moksha.hub.api.PollingProducer):
     """
-    An abstract base class for our other producers. Creating a functional
-    subclass requires co-ordinating a change in
-    statscache.consumer.StatsConsumer to ensure that the appropriate bucket
-    exists.
+    An abstract base class for dynamically generated producers. Subclasses need
+    only define 'frequency' and 'plugin_classes' attributes as well as define a
+    unique class name for themselves.
     """
     def __init__(self, hub):
-        self.name = type(self).__name__[:-len('Producer')]
-        log.debug("%s initializing" % self.name)
+        log.debug("%s initializing" % type(self).__name__)
         super(StatsProducerBase, self).__init__(hub)
 
         fedmsg.meta.make_processors(**self.hub.config)
 
-        # Find and save the StatsConsumer instance already created by the hub.
-        # We are going to re-use its backends and db session.
-        self.sister = statscache.utils.find_stats_consumer(self.hub)
+        # set up the cache and connect to the consumer
+        self.cache = []
+        statscache.utils.find_stats_consumer(self.hub).register(self)
 
-        self.plugins = statscache.utils.load_plugins(self.hub.config)
+        #self.plugins = statscache.utils.init_plugins(self.hub.config)
 
         uri = self.hub.config['statscache.sqlalchemy.uri']
         statscache.plugins.create_tables(uri)
 
         log.debug("%s initialized with %r plugins" % (
-            self.name, len(self.plugins)))
-        self.init_plugins()
-
-    def init_plugins(self):
-        """ Allow plugins to initialize themselves using the database """
+            type(self).__name__, len(self.plugin_classes)))
         session = self.make_session()
-        for plugin in self.plugins.values():
-            initialize = getattr(plugin, 'initialize', None)
-            if initialize is None:
-                continue
-            plugin.initialize(session)
-        session.commit()
+        self.plugins = []
+        for plugin_class in self.plugin_classes:
+            try:
+                plugin = plugin_class(self.frequency, self.hub.config)
+                initialize = getattr(plugin, 'initialize', None)
+                if initialize is not None:
+                    plugin.initialize(session)
+                statscache.utils.register_plugin(plugin, self.hub.config)
+                session.commit()
+                self.plugins.append(plugin)
+                log.info("Initialized plugin %r" % plugin.ident)
+            except Exception:
+                log.exception("Failed to initialize plugin %r" % plugin_class)
+                session.rollback()
 
     def make_session(self):
         """ Initiate database connection """
         uri = self.hub.config['statscache.sqlalchemy.uri']
         return statscache.plugins.init_model(uri)
 
+    def buffer(self, message):
+        self.cache.append(message)
+
     def poll(self):
         """
-        Empty the associated bucket and send to each plugin for processing.
+        Empty the cache and distribute the contents to each plugin for
+        processing.
         """
-        now = datetime.datetime.utcnow()
+        timestamp = datetime.datetime.utcnow() # moment cache was cleared
 
-        bucket = self.sister.buckets[self.name]
-        self.sister.buckets[self.name] = []
+        cache = self.cache
+        self.cache = []
 
-        n = len(bucket)
-        log.info("%s called with %i items in the bucket." % (self.name, n))
+        n = len(cache)
+        log.info("%s called with %i cached items." % (type(self).__name__, n))
 
-        for plugin in self.plugins.values():
-            log.info("  Calling %r" % plugin.name)
+        for plugin in self.plugins:
+            log.info("  Calling %r" % plugin.ident)
             session = self.make_session()
             try:
-                plugin.handle(session, bucket)
+                plugin.handle(session, timestamp, cache)
                 session.commit()
             except:
                 log.exception('Error during plugin %r handling.' % plugin)
                 session.rollback()
 
 
-class OneSecondProducer(StatsProducerBase):
-    frequency = statscache.schedule.Schedule(second=range(0, 60, 1))
+def factory():
+    """
+    Producer class factory based on the frequencies of the available plugin
+    classes.
+    """
+    plugins_by_interval = defaultdict(list)
+    for plugin_class in statscache.utils.plugin_classes:
+        interval = plugin_class.interval
+        if isinstance(interval, datetime.timedelta):
+            plugins_by_interval[interval].append(plugin_class)
 
+    # synchronize all frequencies on UTC midnight of current day
+    epoch = datetime.datetime.utcnow().replace(hour=0,
+                                               minute=0,
+                                               second=0,
+                                               microsecond=0)
+    for interval, plugin_classes in plugins_by_interval.items():
+        class StatsProducerAnon(StatsProducerBase):
+            """ Dynamically generated class for a specific frequency """
+            pass # we need to programmatically set class attributes
+        frequency = statscache.frequency.Frequency(interval, epoch)
+        StatsProducerAnon.frequency = frequency
+        StatsProducerAnon.plugin_classes = plugin_classes
+        StatsProducerAnon.__name__ = 'StatsProducer' + str(frequency)
+        yield StatsProducerAnon
+    return
 
-class FiveSecondProducer(StatsProducerBase):
-    frequency = statscache.schedule.Schedule(second=range(0, 60, 5))
-
-
-class OneMinuteProducer(StatsProducerBase):
-    frequency = statscache.schedule.Schedule(second=[0])
-
-
-class OneDayProducer(StatsProducerBase):
-    # Every night at midnight (UTC)
-    frequency = statscache.schedule.Schedule(second=[0], minute=[0], hour=[0])
+producers = factory()

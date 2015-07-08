@@ -16,7 +16,7 @@ session = statscache.plugins.init_model(uri)
 def main(name):
     """ Generate a JSON-P response with the content of the plugin's model """
     callback = flask.request.args.get('callback')
-    model = statscache.utils.get_model(name, config=config)
+    model = statscache.utils.get_model(name, config)
     results = session.query(model).all()
     body = model.to_json(results)
     if callback:
@@ -33,7 +33,7 @@ def main(name):
 @app.route('/<name>/layout')
 def plugin_layout(name):
     """ Generate a JSON-P response with the content of the plugin's layout """
-    plugin = statscache.utils.get_plugin(name, config=config)
+    plugin = statscache.utils.get_plugin(name, config)
     body = ''
     status = 404
     callback = flask.request.args.get('callback')

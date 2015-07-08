@@ -111,15 +111,14 @@ class BasePlugin(object):
     name = None
     summary = None
     description = None
+    interval = None # this must be either None or a datetime.timedelta instance
 
     datagrepper_endpoint = 'https://apps.fedoraproject.org/datagrepper/raw/'
 
-    def __init__(self, config, model=None):
+    def __init__(self, frequency, config, model=None):
+        self.frequency = frequency
         self.config = config
-        if model:
-            self.model = model
-        else:
-            self.model = self.make_model()
+        self.model = model or self.make_model()
 
         required = ['name', 'summary', 'description']
         for attr in required:
@@ -127,20 +126,20 @@ class BasePlugin(object):
                 raise ValueError("%r must define %r" % (self, attr))
 
     @property
-    def idx(self):
+    def ident(self):
         """
         Stringify this plugin's name to use as a (hopefully) unique identifier
         """
-        idx = self.name.lower().replace(" ", "-")
+        ident = self.name.lower().replace(" ", "-")
 
         bad = ['"', "'", '(', ')', '*', '&', '?', ',']
         replacements = dict(zip(bad, [''] * len(bad)))
         for a, b in replacements.items():
-            idx = idx.replace(a, b)
+            ident = ident.replace(a, b)
         frequency = getattr(self, 'frequency', None)
         if frequency:
-            idx += '-{}'.format(frequency)
-        return idx
+            ident += '-{}'.format(frequency)
+        return ident
 
     @abc.abstractmethod
     def handle(self, session, timestamp, messages):

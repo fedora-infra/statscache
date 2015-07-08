@@ -7,7 +7,8 @@ log = logging.getLogger("fedmsg")
 
 class StatsConsumer(fedmsg.consumers.FedmsgConsumer):
     """
-    The actual 'cache' of statscache that accumulates messages to be processed.
+    This consumer class propagates copies of incoming messages to the producers
+    to cache for later processing.
     """
     topic = '*'
     config_key = 'statscache.consumer.enabled'
@@ -17,18 +18,18 @@ class StatsConsumer(fedmsg.consumers.FedmsgConsumer):
         log.debug("statscache consumer initializing")
         super(StatsConsumer, self).__init__(*args, **kwargs)
         log.debug("statscache consumer initialized")
-        self.buckets = {
-            'OneSecond': [],
-            'FiveSecond': [],
-            'OneMinute': [],
-        }
+        self.producers = []
+
+    def register(self, producer):
+        """ Method to register a producer """
+        self.producers.append(producer)
 
     def consume(self, raw_msg):
         """ Receive a message and enqueue it onto each bucket """
         topic, msg = raw_msg['topic'], raw_msg['body']
         log.info("Got message %r", topic)
-        for name, bucket in self.buckets.items():
-            bucket.append(copy.deepcopy(msg))
+        for producer in self.producers:
+            producer.buffer(copy.deepcopy(msg))
 
     def stop(self):
         log.info("Cleaning up StatsConsumer.")
