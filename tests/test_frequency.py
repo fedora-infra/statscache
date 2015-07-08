@@ -17,33 +17,32 @@ class TestFrequency(unittest.TestCase):
     def test_basic(self):
         now = datetime.now()
         f = Frequency(timedelta(minutes=15, hours=5), midnight_of(now))
-        self.assertEquals(f.time_to_fire(now=now).total_seconds(),
-                          (5 * 60 + 15) * 60)
+        self.assertEquals(float(f), (5 * 60 + 15) * 60)
 
     @freezegun.freeze_time('2012-01-14 00:00:00')
     def test_one_second(self):
         now = datetime.now()
         f = Frequency(timedelta(seconds=1), midnight_of(now))
-        self.assertEquals(f.time_to_fire(now=now).total_seconds(), 1)
+        self.assertEquals(float(f), 1)
 
     @freezegun.freeze_time('2012-01-14 00:00:01')
     def test_one_second_ahead(self):
         now = datetime.now()
         f = Frequency(timedelta(seconds=1), midnight_of(now))
-        self.assertEquals(f.time_to_fire(now=now).total_seconds(), 1)
+        self.assertEquals(float(f), 1)
 
     @freezegun.freeze_time('2012-01-14 00:00:00')
     def test_two_seconds(self):
         now = datetime.now()
         f = Frequency(timedelta(seconds=2), midnight_of(now))
-        self.assertEquals(f.time_to_fire(now=now).total_seconds(), 2)
+        self.assertEquals(float(f), 2)
 
     @freezegun.freeze_time('2012-01-14 00:00:00')
     def test_working_with_time_sleep(self):
         now = datetime.now()
         f = Frequency(timedelta(seconds=1), midnight_of(now))
 
-        value = f.time_to_fire(now=now).total_seconds()
+        value = float(f)
         # Be careful not to sleep for 20 years if there's a bug
         if value > 2:
             raise ValueError("sleeping too long %r" % value)
@@ -61,7 +60,7 @@ class TestFrequency(unittest.TestCase):
     def test_last_on_epoch(self):
         now = datetime.now()
         f = Frequency(timedelta(hours=5, minutes=20, seconds=30), midnight_of(now))
-        self.assertEquals(f.last(now=now), datetime(year=2012, month=1, day=14))
+        self.assertEquals(f.last(), datetime(year=2012, month=1, day=14))
 
     @nose.tools.raises(TypeError)
     def test_invalid_interval(self):
