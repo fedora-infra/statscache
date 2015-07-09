@@ -14,6 +14,20 @@ uri = config['statscache.sqlalchemy.uri']
 session = statscache.plugins.init_model(uri)
 
 
+def jsonp(body, status):
+    """ Helper function to send either a JSON or JSON-P response """
+    mimetype = 'application/json'
+    callback = flask.request.args.get('callback')
+    if callback:
+        body = '{}({})'.format(callback, body)
+        mimetype = 'application/javascript'
+    return flask.Response(
+        response=body,
+        status=status,
+        mimetype=mimetype
+    )
+
+
 @app.route('/<name>')
 def main(name):
     """ Generate a JSON-P response with the content of the plugin's model """
@@ -24,16 +38,7 @@ def main(name):
     except AttributeError:
         raise KeyError("No such model for %r" % name)
     results = session.query(model).all()
-    body = model.to_json(results)
-    if callback:
-        body = '{}({})'.format(callback, body)
-    status = 200
-    mimetype = 'application/javascript'
-    return flask.Response(
-        response=body,
-        status=status,
-        mimetype=mimetype
-    )
+    return jsonp(model.to_json(results), 200)
 
 
 @app.route('/<name>/layout')
@@ -42,18 +47,11 @@ def plugin_layout(name):
     plugin = plugins.get(name)
     body = ''
     status = 404
-    callback = flask.request.args.get('callback')
     mimetype = 'application/javascript'
     if plugin and hasattr(plugin, 'layout'):
         body = json.dumps(plugin.layout)
         status = 200
-    if callback:
-        body = '{}({})'.format(callback, body)
-    return flask.Response(
-        response=body,
-        status=status,
-        mimetype=mimetype
-    )
+    return jsonp(body, status)
 
 
 if __name__ == '__main__':
