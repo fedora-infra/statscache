@@ -28,6 +28,12 @@ def jsonp(body, status):
     )
 
 
+@app.route('/')
+def index():
+    """ Generate a JSON-P response with an index of plugins (as an array) """
+    return jsonp(json.dumps(plugins.keys()), 200)
+
+
 @app.route('/<name>')
 def main(name):
     """ Generate a JSON-P response with the content of the plugin's model """
