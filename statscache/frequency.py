@@ -2,15 +2,25 @@ import datetime
 
 
 class Frequency(object):
-    """ A repeating interval synchronized on an epoch """
-    def __init__(self, interval, epoch):
+    """
+    A repeating interval synchronized on an epoch, which defaults to UTC
+    midnight of the current day (when this class definiton was loaded).
+    """
+
+    # synchronize all frequencies on UTC midnight of current day
+    epoch = datetime.datetime.utcnow().replace(hour=0,
+                                               minute=0,
+                                               second=0,
+                                               microsecond=0)
+
+    def __init__(self, interval, epoch=None):
         # synchronize on UTC midnight of the day of creation
-        if not isinstance(interval, datetime.timedelta):
-            raise TypeError("'interval' must be an instance of 'timedelta'")
         self.interval = interval
-        if not isinstance(epoch, datetime.datetime):
+        if not isinstance(self.interval, datetime.timedelta):
+            raise TypeError("'interval' must be an instance of 'timedelta'")
+        self.epoch = epoch or Frequency.epoch
+        if not isinstance(self.epoch, datetime.datetime):
             raise TypeError("'epoch' must be an instance of 'datetime'")
-        self.epoch = epoch
 
     @property
     def days(self):
