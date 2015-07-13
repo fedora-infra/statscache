@@ -52,7 +52,7 @@ def main(name):
 def plugin_layout(name):
     """ Generate a JSON-P response with the content of the plugin's layout """
     plugin = plugins.get(name)
-    body = ''
+    body = '"No such layout for \'{}\'"'.format(name)
     status = 404
     mimetype = 'application/javascript'
     if plugin and hasattr(plugin, 'layout'):
