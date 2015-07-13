@@ -43,8 +43,7 @@ class StatsProducerBase(moksha.hub.api.PollingProducer):
                 initialize = getattr(plugin, 'initialize', None)
                 if initialize is not None:
                     plugin.initialize(session)
-                statscache.utils.register_plugin(plugin, self.hub.config)
-                session.commit()
+                    session.commit()
                 self.plugins.append(plugin)
                 log.info("Initialized plugin %r" % plugin.ident)
             except Exception:

@@ -1,6 +1,5 @@
 import inspect
 import pkg_resources
-from collections import defaultdict
 
 import statscache.plugins
 
@@ -46,21 +45,3 @@ def load_plugins():
 
 # load the available plugin classes once and save them
 plugin_classes = load_plugins()
-
-
-plugin_table = defaultdict(dict)
-
-
-def register_plugin(plugin, config):
-    plugin_table[hash(str(config))][plugin.ident] = plugin
-
-
-def get_plugin(ident, config):
-    return plugin_table[hash(str(config))].get(ident)
-
-
-def get_model(ident, config):
-    plugin = get_plugin(ident, config)
-    if plugin:
-        return plugin.model
-    raise KeyError("No such model for %r" % (ident))
