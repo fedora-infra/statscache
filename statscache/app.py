@@ -38,13 +38,14 @@ def index():
 def main(name):
     """ Generate a JSON-P response with the content of the plugin's model """
     callback = flask.request.args.get('callback')
-    model = None
-    try:
-        model = plugins.get(name).model
-    except AttributeError:
-        raise KeyError("No such model for %r" % name)
-    results = session.query(model).all()
-    return jsonp(model.to_json(results), 200)
+    status = 404
+    body = '"No such model for \'{}\'"'.format(name)
+    plugin = plugins.get(name)
+    if hasattr(plugin, 'model'):
+        model = plugin.model
+        status = 200
+        body = model.to_json(session.query(model).all())
+    return jsonp(body, status)
 
 
 @app.route('/<name>/layout')
