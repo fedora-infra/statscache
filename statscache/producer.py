@@ -43,8 +43,7 @@ class StatsProducerBase(moksha.hub.api.PollingProducer):
                 initialize = getattr(plugin, 'initialize', None)
                 if initialize is not None:
                     plugin.initialize(session)
-                statscache.utils.register_plugin(plugin, self.hub.config)
-                session.commit()
+                    session.commit()
                 self.plugins.append(plugin)
                 log.info("Initialized plugin %r" % plugin.ident)
             except Exception:
@@ -94,16 +93,11 @@ def factory():
         if isinstance(interval, datetime.timedelta):
             plugins_by_interval[interval].append(plugin_class)
 
-    # synchronize all frequencies on UTC midnight of current day
-    epoch = datetime.datetime.utcnow().replace(hour=0,
-                                               minute=0,
-                                               second=0,
-                                               microsecond=0)
     for interval, plugin_classes in plugins_by_interval.items():
         class StatsProducerAnon(StatsProducerBase):
             """ Dynamically generated class for a specific frequency """
             pass # we need to programmatically set class attributes
-        frequency = statscache.frequency.Frequency(interval, epoch)
+        frequency = statscache.frequency.Frequency(interval)
         StatsProducerAnon.frequency = frequency
         StatsProducerAnon.plugin_classes = plugin_classes
         StatsProducerAnon.__name__ = 'StatsProducer' + str(frequency)
