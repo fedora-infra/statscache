@@ -2,28 +2,73 @@ import abc
 import collections
 import json
 import time
+import datetime
+from functools import partial
 
 import sqlalchemy as sa
 from sqlalchemy import create_engine
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import sessionmaker
 from sqlalchemy.orm import scoped_session
+from sqlalchemy.orm.attributes import InstrumentedAttribute
 
 
 class BaseModelClass(object):
     id = sa.Column(sa.Integer, primary_key=True)
     timestamp = sa.Column(sa.DateTime, nullable=False, index=True)
 
+    @classmethod
+    def columns(cls):
+        """ Return list of column attribute names """
+        return [attr for (attr, obj) in cls.__dict__.iteritems()
+                                     if isinstance(obj, InstrumentedAttribute)]
 
-class ScalarModelClass(BaseModelClass):
-    scalar = sa.Column(sa.Integer, nullable=False)
+    @classmethod
+    def to_json(cls, instances):
+        """ Default JSON serializer """
+        def serialize(obj):
+            serializable = [dict, list, str, int, float, bool, None.__class__]
+            if True in map(partial(isinstance, obj), serializable):
+                return obj
+            elif isinstance(obj, datetime.datetime):
+                return time.mktime(obj.timetuple())
+            else:
+                return str(obj)
+        columns = filter(lambda col: col != 'id', cls.columns())
+        return json.dumps([
+            { col: serialize(getattr(ins, col)) for col in columns }
+            for ins in instances
+        ])
 
     @classmethod
     def to_csv(cls, instances):
-        return "\n".join([
-            "%0.2f, %i" % (time.mktime(ins.timestamp.timetuple()), ins.scalar)
-            for ins in instances
-        ])
+        """ Default CSV serializer """
+        def serialize(obj):
+            if isinstance(obj, datetime.datetime):
+                return time.mktime(obj.timetuple())
+            else:
+                return str(obj)
+        def concat(xs, ys):
+            xs.extend(ys)
+            return xs
+        columns = filter(lambda col: col != 'id', cls.columns())
+        columns.remove('timestamp')
+        columns.sort()
+        columns.insert(0, 'timestamp')
+        return '\n'.join(concat(
+            ','.join(columns),
+            [
+                ','.join([
+                    serialize(getattr(ins, col))
+                    for col in columns
+                ])
+                for ins in instances
+            ]
+        ))
+
+
+class ScalarModelClass(BaseModelClass):
+    scalar = sa.Column(sa.Integer, nullable=False)
 
 
 class CategorizedModelClass(BaseModelClass):
@@ -56,25 +101,6 @@ class CategorizedModelClass(BaseModelClass):
 class CategorizedLogModelClass(BaseModelClass):
     category = sa.Column(sa.UnicodeText, nullable=False, index=True)
     message = sa.Column(sa.UnicodeText, nullable=False)
-
-    @classmethod
-    def to_csv(cls, instances):
-        return "\n".join([
-            "%0.2f, %s, %s" % (
-                time.mktime(instance.timestamp.timetuple()),
-                instance.category, instance.message)
-            for instance in instances
-        ])
-
-    @classmethod
-    def to_json(cls, instances):
-        return json.dumps([
-            {
-                'timestamp': time.mktime(instance.timestamp.timetuple()),
-                'category': instance.category,
-                'message': instance.message
-            } for instance in instances
-        ])
 
 
 class ConstrainedCategorizedLogModelClass(CategorizedLogModelClass):
