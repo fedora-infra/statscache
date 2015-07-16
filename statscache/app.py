@@ -54,7 +54,6 @@ def plugin_layout(name):
     plugin = plugins.get(name)
     body = '"No such layout for \'{}\'"'.format(name)
     status = 404
-    mimetype = 'application/javascript'
     if plugin and hasattr(plugin, 'layout'):
         body = json.dumps(plugin.layout)
         status = 200
