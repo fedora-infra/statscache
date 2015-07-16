@@ -28,36 +28,76 @@ def jsonp(body, status):
     )
 
 
+def get_mimetype():
+    """ Get the most acceptable supported mimetype """
+    return flask.request.accept_mimetypes.best_match([
+        'application/json',
+        'text/json',
+        'application/javascript',
+        'text/javascript',
+        'application/csv',
+        'text/csv',
+#        'text/html', # currently, no HTML renderers have been implemented
+    ])
+
+
+def error(message, status):
+    """ Send the error message in an acceptable content-type """
+    # quoting the string usually works, but TODO: more graceful error handling
+    return flask.Response(
+        response=repr(message),
+        status=status,
+        mimetype=get_mimetype()
+    )
+
+
+def respond(model, rows, status):
+    """
+    Helper function to generate a response in the appropriate content-type
+    """
+    mimetype = get_mimetype()
+    if mimetype.endswith('json') or mimetype.endswith('javascript'):
+        return jsonp(model.to_json(rows), status)
+    elif mimetype.endswith('csv'):
+        return flask.Response(
+            response=model.to_csv(rows),
+            status=status,
+            mimetype=mimetype
+        )
+#    elif mimetype.endswith('html'):
+#        return render_template('view.html', data=model.to_json(rows)), status
+    else:
+        return error("Content-type(s) not available", 406)
+
+
 @app.route('/')
 def index():
     """ Generate a JSON-P response with an index of plugins (as an array) """
+    mimetype = get_mimetype()
+    if not mimetype.endswith('json') and not mimetype.endswith('javascript'):
+        return error("Content-type(s) not available", 406)
     return jsonp(json.dumps(plugins.keys()), 200)
 
 
 @app.route('/<name>')
 def main(name):
     """ Generate a JSON-P response with the content of the plugin's model """
-    callback = flask.request.args.get('callback')
-    status = 404
-    body = '"No such model for \'{}\'"'.format(name)
     plugin = plugins.get(name)
-    if hasattr(plugin, 'model'):
-        model = plugin.model
-        status = 200
-        body = model.to_json(session.query(model).all())
-    return jsonp(body, status)
+    if not hasattr(plugin, 'model'):
+        return error("No such model for '{}'".format(name), 404)
+    return respond(plugin.model, session.query(plugin.model).all(), 200)
 
 
 @app.route('/<name>/layout')
 def plugin_layout(name):
     """ Generate a JSON-P response with the content of the plugin's layout """
     plugin = plugins.get(name)
-    body = '"No such layout for \'{}\'"'.format(name)
-    status = 404
-    if plugin and hasattr(plugin, 'layout'):
-        body = json.dumps(plugin.layout)
-        status = 200
-    return jsonp(body, status)
+    mimetype = get_mimetype()
+    if not mimetype.endswith('json') and not mimetype.endswith('javascript'):
+        return error("Content-type(s) not available", 406)
+    if not hasattr(plugin, 'layout'):
+        return error("No such layout for '{}'".format(name), 404)
+    return jsonp(json.dumps(plugin.layout), 200)
 
 
 if __name__ == '__main__':
