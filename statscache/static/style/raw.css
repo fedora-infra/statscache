@@ -1,0 +1,25 @@
+.message-card {
+    min-height: 25px;
+}
+
+img {
+    height: 25px;
+    width: 25px;
+    margin: 2px auto;
+}
+
+p {
+    display: inline;
+}
+
+.datetime {
+    margin-bottom: 10px;
+    color: #999;
+    font-size: 13px;
+}
+
+// For the pygmentized json blobs
+.highlight {
+    -moz-border-radius: 15px;
+    border-radius: 15px;
+}
