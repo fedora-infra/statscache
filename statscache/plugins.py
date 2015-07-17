@@ -45,7 +45,7 @@ class BaseModelClass(object):
         """ Default CSV serializer """
         def serialize(obj):
             if isinstance(obj, datetime.datetime):
-                return time.mktime(obj.timetuple())
+                return str(time.mktime(obj.timetuple()))
             else:
                 return str(obj)
         def concat(xs, ys):
@@ -56,7 +56,7 @@ class BaseModelClass(object):
         columns.sort()
         columns.insert(0, 'timestamp')
         return '\n'.join(concat(
-            ','.join(columns),
+            [','.join(columns)],
             [
                 ','.join([
                     serialize(getattr(ins, col))
