@@ -1,11 +1,16 @@
 """ Setup file for statscache """
 
+import os
+import os.path
 from setuptools import setup
 
 
 def get_description():
     with open('README.rst', 'r') as f:
         return ''.join(f.readlines()[2:])
+
+def expand_directory(path):
+    return map(lambda name: os.path.join(path, name), os.listdir(path))
 
 requires = [
     'fedmsg',
@@ -18,6 +23,16 @@ requires = [
 tests_require = [
     'nose',
     'freezegun'
+]
+
+# TODO: let a flag or option determine whether to actually install these
+install_data = [
+    ('/etc/httpd/conf.d/', ['apache/statscache.conf']),
+    ('/usr/share/statscache/', ['apache/statscache.wsgi']),
+    ('/usr/share/statscache/static/style',
+        expand_directory('statscache/static/style/')),
+    ('/usr/share/statscache/static/script',
+        expand_directory('statscache/static/script/')),
 ]
 
 setup(
@@ -35,6 +50,7 @@ setup(
     test_suite='nose.collector',
     packages=['statscache'],
     include_package_data=True,
+    data_files=install_data,
     zip_safe=False,
     classifiers=[
         'Environment :: Web Environment',
