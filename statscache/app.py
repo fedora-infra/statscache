@@ -14,7 +14,7 @@ uri = config['statscache.sqlalchemy.uri']
 session = statscache.plugins.init_model(uri)
 
 
-def jsonp(body, status):
+def jsonp(body):
     """ Helper function to send either a JSON or JSON-P response """
     mimetype = 'application/json'
     callback = flask.request.args.get('callback')
@@ -23,7 +23,7 @@ def jsonp(body, status):
         mimetype = 'application/javascript'
     return flask.Response(
         response=body,
-        status=status,
+        status=200,
         mimetype=mimetype
     )
 
@@ -41,41 +41,36 @@ def get_mimetype():
     ]) or ""
 
 
-def respond(model, rows, status):
-    """
-    Helper function to generate a response in the appropriate content-type
-    """
-    mimetype = get_mimetype()
-    if mimetype.endswith('json') or mimetype.endswith('javascript'):
-        return jsonp(model.to_json(rows), status)
-    elif mimetype.endswith('csv'):
-        return flask.Response(
-            response=model.to_csv(rows),
-            status=status,
-            mimetype=mimetype
-        )
-#    elif mimetype.endswith('html'):
-#        return render_template('view.html', data=model.to_json(rows)), status
-    else:
-        flask.abort(406)
-
-
 @app.route('/')
-def index():
+def plugin_index():
     """ Generate a JSON-P response with an index of plugins (as an array) """
     mimetype = get_mimetype()
     if not mimetype.endswith('json') and not mimetype.endswith('javascript'):
         flask.abort(406)
-    return jsonp(json.dumps(plugins.keys()), 200)
+    return jsonp(json.dumps(plugins.keys()))
 
 
 @app.route('/<name>')
-def main(name):
+def plugin_model(name):
     """ Generate a JSON-P response with the content of the plugin's model """
     plugin = plugins.get(name)
     if not hasattr(plugin, 'model'):
-        flask.abort(404)
-    return respond(plugin.model, session.query(plugin.model).all(), 200)
+        return '"No such model for \'{}\'"'.format(name), 404
+    model = plugin.model
+    rows = session.query(model).all()
+    mimetype = get_mimetype()
+    if mimetype.endswith('json') or mimetype.endswith('javascript'):
+        return jsonp(model.to_json(rows))
+    elif mimetype.endswith('csv'):
+        return flask.Response(
+            response=model.to_csv(rows),
+            status=200,
+            mimetype=mimetype
+        )
+#    elif mimetype.endswith('html'):
+#        return flask.render_template('view.html', data=model.to_json(rows))
+    else:
+        flask.abort(406)
 
 
 @app.route('/<name>/layout')
@@ -87,7 +82,7 @@ def plugin_layout(name):
         flask.abort(406)
     if not hasattr(plugin, 'layout'):
         flask.abort(404)
-    return jsonp(json.dumps(plugin.layout), 200)
+    return jsonp(json.dumps(plugin.layout))
 
 
 @app.errorhandler(404)
