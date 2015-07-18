@@ -28,8 +28,6 @@ class StatsProducerBase(moksha.hub.api.PollingProducer):
         self.cache = []
         statscache.utils.find_stats_consumer(self.hub).register(self)
 
-        #self.plugins = statscache.utils.init_plugins(self.hub.config)
-
         uri = self.hub.config['statscache.sqlalchemy.uri']
         statscache.plugins.create_tables(uri)
 
