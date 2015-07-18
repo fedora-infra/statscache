@@ -1,0 +1,63 @@
+{% extends "layout.html" %}
+{% block title %}{{ request.view_args['ident'] }} feed{% endblock %}
+{% block head %}
+	<meta name="description" content="View of statscache feed">
+	<meta name="author" content="Nathaniel Yazdani">
+	<link rel="stylesheet"
+		  type="text/css"
+		  href="{{ url_for('static', filename='style/feed.css') }}" >
+	</link>
+	<script type="application/javascript">
+		String.prototype.format = function (o) {
+		    return this.replace(/{([^{}]*)}/g,
+		        function (a, b) {
+		            var r = o[b];
+		            return typeof r === 'string' || typeof r === 'number' ? r : a;
+		        }
+		    );
+		};
+
+		var feed = "{{ request.base_url }}";
+		/* TODO: variable time interval */
+//		var stop = Date.parse({{ '????? '}});
+//		var start = Date.parse({{ '?????' }});
+		function render(data) {
+			/* sort data from newest to oldest; TODO: implement in server */
+			data.sort(function (x, y) { return x.timestamp - y.timestamp; });
+			var headers = Object.keys(data[0]);
+			headers.splice(headers.indexOf('timestamp'), 1);
+			headers.unshift('timestamp');
+			$('thead').append("<tr>" + headers.map(function (s) {
+				return '<th>' + s + '</th>';
+			}).join() + "</tr>");
+			template = "<tr>" + headers.map(function (s) {
+				return '<td>{' + s + '}</td>';
+			}).join() + "</tr>";
+			_.each(data, function (row) {
+				t = new Date();
+				t.setTime(row.timestamp);
+				row.timestamp = t.toUTCString();
+				$('tbody').append(template.format(row)); /* FIXME: escape string */
+			});
+			/* TODO: render a configurable graph */
+		}
+
+		$(document).ready(function () {
+			render({{ data|safe }});
+		});
+	</script>
+{% endblock %}
+{% block body %}
+	<header class="page-header row">
+		<div class="col-md-6">
+			<h1>{{ request.view_args['ident'] }}  <small>feed</small></h1>
+		</div>
+	</header>
+	<main class="row">
+		<table class="table">
+			<thead></thead>
+			<tbody></tbody>
+			<tfoot></tfoot>
+		</table>
+	</main>
+{% endblock %}
