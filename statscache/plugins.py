@@ -142,6 +142,6 @@ class BasePlugin(object):
         return ident
 
     @abc.abstractmethod
-    def handle(self, session, timestamp, messages):
-        """ Process messages produced as of the given timestamp """
+    def handle(self, session, messages):
+        """ Process a list of messages using the given database session """
         pass

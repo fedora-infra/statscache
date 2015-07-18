@@ -63,8 +63,6 @@ class StatsProducerBase(moksha.hub.api.PollingProducer):
         Empty the cache and distribute the contents to each plugin for
         processing.
         """
-        timestamp = datetime.datetime.utcnow() # moment cache was cleared
-
         cache = self.cache
         self.cache = []
 
@@ -75,7 +73,7 @@ class StatsProducerBase(moksha.hub.api.PollingProducer):
             log.info("  Calling %r" % plugin.ident)
             session = self.make_session()
             try:
-                plugin.handle(session, timestamp, cache)
+                plugin.handle(session, cache)
                 session.commit()
             except:
                 log.exception('Error during plugin %r handling.' % plugin)
