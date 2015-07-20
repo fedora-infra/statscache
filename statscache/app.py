@@ -38,17 +38,7 @@ def get_mimetype():
         'application/csv',
         'text/csv',
 #        'text/html', # currently, no HTML renderers have been implemented
-    ])
-
-
-def error(message, status):
-    """ Send the error message in an acceptable content-type """
-    # quoting the string usually works, but TODO: more graceful error handling
-    return flask.Response(
-        response=repr(message),
-        status=status,
-        mimetype=get_mimetype()
-    )
+    ]) or ""
 
 
 def respond(model, rows, status):
@@ -67,7 +57,7 @@ def respond(model, rows, status):
 #    elif mimetype.endswith('html'):
 #        return render_template('view.html', data=model.to_json(rows)), status
     else:
-        return error("Content-type(s) not available", 406)
+        flask.abort(406)
 
 
 @app.route('/')
@@ -75,7 +65,7 @@ def index():
     """ Generate a JSON-P response with an index of plugins (as an array) """
     mimetype = get_mimetype()
     if not mimetype.endswith('json') and not mimetype.endswith('javascript'):
-        return error("Content-type(s) not available", 406)
+        flask.abort(406)
     return jsonp(json.dumps(plugins.keys()), 200)
 
 
@@ -84,7 +74,7 @@ def main(name):
     """ Generate a JSON-P response with the content of the plugin's model """
     plugin = plugins.get(name)
     if not hasattr(plugin, 'model'):
-        return error("No such model for '{}'".format(name), 404)
+        flask.abort(404)
     return respond(plugin.model, session.query(plugin.model).all(), 200)
 
 
@@ -94,10 +84,32 @@ def plugin_layout(name):
     plugin = plugins.get(name)
     mimetype = get_mimetype()
     if not mimetype.endswith('json') and not mimetype.endswith('javascript'):
-        return error("Content-type(s) not available", 406)
+        flask.abort(406)
     if not hasattr(plugin, 'layout'):
-        return error("No such layout for '{}'".format(name), 404)
+        flask.abort(404)
     return jsonp(json.dumps(plugin.layout), 200)
+
+
+@app.errorhandler(404)
+def resource_not_found(error):
+    name = (flask.request.view_args or {}).get('name')
+    msg = "No such resource"
+    if name is not None:
+        msg += " for {}".format(name)
+    return flask.Response(
+        response=msg,
+        mimetype='text/plain',
+        status=404
+    )
+
+
+@app.errorhandler(406)
+def unacceptable_content(error):
+    return flask.Response(
+        response="Content-type(s) not available",
+        mimetype='text/plain',
+        status=406
+    )
 
 
 if __name__ == '__main__':
