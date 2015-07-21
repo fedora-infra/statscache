@@ -35,7 +35,7 @@
 			}).join() + "</tr>";
 			_.each(data, function (row) {
 				t = new Date();
-				t.setTime(row.timestamp);
+				t.setTime(row.timestamp*1000);
 				row.timestamp = t.toUTCString();
 				$('tbody').append(template.format(row)); /* FIXME: escape string */
 			});
