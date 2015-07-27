@@ -28,24 +28,36 @@ class StatsProducerBase(moksha.hub.api.PollingProducer):
         self.cache = []
         statscache.utils.find_stats_consumer(self.hub).register(self)
 
+        log.debug("%s initialized with %r plugins" % (
+            type(self).__name__, len(self.plugin_classes)))
+
+        # Loop over all our plugins twice, pausing in the middle to create
+        # their db tables if necessary.
+        self.plugins = []
+        for plugin_class in self.plugin_classes:
+            plugin = plugin_class(self.frequency, self.hub.config)
+            self.plugins.append(plugin)
+            log.info("Instantiated plugin %r" % plugin.ident)
+
+        # Create any absent db tables (were new plugins installed?)
         uri = self.hub.config['statscache.sqlalchemy.uri']
         statscache.plugins.create_tables(uri)
 
-        log.debug("%s initialized with %r plugins" % (
-            type(self).__name__, len(self.plugin_classes)))
+        # Finally, call the initialize method of any plugins that have one.
+        # This typically makes long queries to datagrepper for historical
+        # information.
         session = self.make_session()
-        self.plugins = []
-        for plugin_class in self.plugin_classes:
+        for plugin in self.plugins:
             try:
-                plugin = plugin_class(self.frequency, self.hub.config)
                 initialize = getattr(plugin, 'initialize', None)
                 if initialize is not None:
                     plugin.initialize(session)
                     session.commit()
-                self.plugins.append(plugin)
                 log.info("Initialized plugin %r" % plugin.ident)
             except Exception:
-                log.exception("Failed to initialize plugin %r" % plugin_class)
+                log.exception("Failed to initialize plugin %r" % plugin)
+                # TODO -- if the plugin fails to initialize we should remove it
+                # from `self.plugins`.
                 session.rollback()
 
     def make_session(self):
