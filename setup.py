@@ -9,6 +9,7 @@ def get_description():
 
 requires = [
     'fedmsg',
+    'moksha.hub>=1.4.6',
     'fedmsg_meta_fedora_infrastructure',
     'sqlalchemy',
 ]
