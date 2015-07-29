@@ -14,46 +14,50 @@ uri = config['statscache.sqlalchemy.uri']
 session = statscache.plugins.init_model(uri)
 
 
-@app.route('/<name>')
-def main(name):
-    """ Generate a JSON-P response with the content of the plugin's model """
+def jsonp(body, status):
+    """ Helper function to send either a JSON or JSON-P response """
+    mimetype = 'application/json'
     callback = flask.request.args.get('callback')
-    model = None
-    try:
-        model = plugins.get(name).model
-    except AttributeError:
-        raise KeyError("No such model for %r" % name)
-    results = session.query(model).all()
-    body = model.to_json(results)
     if callback:
         body = '{}({})'.format(callback, body)
-    status = 200
-    mimetype = 'application/javascript'
+        mimetype = 'application/javascript'
     return flask.Response(
         response=body,
         status=status,
         mimetype=mimetype
     )
+
+
+@app.route('/')
+def index():
+    """ Generate a JSON-P response with an index of plugins (as an array) """
+    return jsonp(json.dumps(plugins.keys()), 200)
+
+
+@app.route('/<name>')
+def main(name):
+    """ Generate a JSON-P response with the content of the plugin's model """
+    callback = flask.request.args.get('callback')
+    status = 404
+    body = '"No such model for \'{}\'"'.format(name)
+    plugin = plugins.get(name)
+    if hasattr(plugin, 'model'):
+        model = plugin.model
+        status = 200
+        body = model.to_json(session.query(model).all())
+    return jsonp(body, status)
 
 
 @app.route('/<name>/layout')
 def plugin_layout(name):
     """ Generate a JSON-P response with the content of the plugin's layout """
     plugin = plugins.get(name)
-    body = ''
+    body = '"No such layout for \'{}\'"'.format(name)
     status = 404
-    callback = flask.request.args.get('callback')
-    mimetype = 'application/javascript'
     if plugin and hasattr(plugin, 'layout'):
         body = json.dumps(plugin.layout)
         status = 200
-    if callback:
-        body = '{}({})'.format(callback, body)
-    return flask.Response(
-        response=body,
-        status=status,
-        mimetype=mimetype
-    )
+    return jsonp(body, status)
 
 
 if __name__ == '__main__':
