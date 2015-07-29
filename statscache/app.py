@@ -41,7 +41,7 @@ def get_mimetype():
     ]) or ""
 
 
-@app.route('/')
+@app.route('/api/')
 def plugin_index():
     """ Generate a JSON-P response with an index of plugins (as an array) """
     mimetype = get_mimetype()
@@ -50,7 +50,7 @@ def plugin_index():
     return jsonp(json.dumps(plugins.keys()))
 
 
-@app.route('/<name>')
+@app.route('/api/<name>')
 def plugin_model(name):
     """ Generate a JSON-P response with the content of the plugin's model """
     plugin = plugins.get(name)
@@ -73,7 +73,7 @@ def plugin_model(name):
         flask.abort(406)
 
 
-@app.route('/<name>/layout')
+@app.route('/api/<name>/layout')
 def plugin_layout(name):
     """ Generate a JSON-P response with the content of the plugin's layout """
     plugin = plugins.get(name)
