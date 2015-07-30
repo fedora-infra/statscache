@@ -14,7 +14,7 @@ uri = config['statscache.sqlalchemy.uri']
 session = statscache.plugins.init_model(uri)
 
 
-def jsonp(body, status):
+def jsonp(body):
     """ Helper function to send either a JSON or JSON-P response """
     mimetype = 'application/json'
     callback = flask.request.args.get('callback')
@@ -23,41 +23,88 @@ def jsonp(body, status):
         mimetype = 'application/javascript'
     return flask.Response(
         response=body,
-        status=status,
+        status=200,
         mimetype=mimetype
     )
 
 
-@app.route('/')
-def index():
+def get_mimetype():
+    """ Get the most acceptable supported mimetype """
+    return flask.request.accept_mimetypes.best_match([
+        'application/json',
+        'text/json',
+        'application/javascript',
+        'text/javascript',
+        'application/csv',
+        'text/csv',
+#        'text/html', # currently, no HTML renderers have been implemented
+    ]) or ""
+
+
+@app.route('/api/')
+def plugin_index():
     """ Generate a JSON-P response with an index of plugins (as an array) """
-    return jsonp(json.dumps(plugins.keys()), 200)
+    mimetype = get_mimetype()
+    if not mimetype.endswith('json') and not mimetype.endswith('javascript'):
+        flask.abort(406)
+    return jsonp(json.dumps(plugins.keys()))
 
 
-@app.route('/<name>')
-def main(name):
+@app.route('/api/<name>')
+def plugin_model(name):
     """ Generate a JSON-P response with the content of the plugin's model """
-    callback = flask.request.args.get('callback')
-    status = 404
-    body = '"No such model for \'{}\'"'.format(name)
     plugin = plugins.get(name)
-    if hasattr(plugin, 'model'):
-        model = plugin.model
-        status = 200
-        body = model.to_json(session.query(model).all())
-    return jsonp(body, status)
+    if not hasattr(plugin, 'model'):
+        return '"No such model for \'{}\'"'.format(name), 404
+    model = plugin.model
+    rows = session.query(model).all()
+    mimetype = get_mimetype()
+    if mimetype.endswith('json') or mimetype.endswith('javascript'):
+        return jsonp(model.to_json(rows))
+    elif mimetype.endswith('csv'):
+        return flask.Response(
+            response=model.to_csv(rows),
+            status=200,
+            mimetype=mimetype
+        )
+#    elif mimetype.endswith('html'):
+#        return flask.render_template('view.html', data=model.to_json(rows))
+    else:
+        flask.abort(406)
 
 
-@app.route('/<name>/layout')
+@app.route('/api/<name>/layout')
 def plugin_layout(name):
     """ Generate a JSON-P response with the content of the plugin's layout """
     plugin = plugins.get(name)
-    body = '"No such layout for \'{}\'"'.format(name)
-    status = 404
-    if plugin and hasattr(plugin, 'layout'):
-        body = json.dumps(plugin.layout)
-        status = 200
-    return jsonp(body, status)
+    mimetype = get_mimetype()
+    if not mimetype.endswith('json') and not mimetype.endswith('javascript'):
+        flask.abort(406)
+    if not hasattr(plugin, 'layout'):
+        flask.abort(404)
+    return jsonp(json.dumps(plugin.layout))
+
+
+@app.errorhandler(404)
+def resource_not_found(error):
+    name = (flask.request.view_args or {}).get('name')
+    msg = "No such resource"
+    if name is not None:
+        msg += " for {}".format(name)
+    return flask.Response(
+        response=msg,
+        mimetype='text/plain',
+        status=404
+    )
+
+
+@app.errorhandler(406)
+def unacceptable_content(error):
+    return flask.Response(
+        response="Content-type(s) not available",
+        mimetype='text/plain',
+        status=406
+    )
 
 
 if __name__ == '__main__':
