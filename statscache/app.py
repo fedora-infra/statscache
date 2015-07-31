@@ -65,7 +65,8 @@ def plugin_model(name):
         order: ascend ('asc') or descend ('desc') results by timestamp
         start: exclude results older than the given UTC timestamp
         stop: exclude results newer than the given UTC timestamp
-        paginate: whether to paginate ('yes'/'true' assumed if 'page' is given)
+        paginate: whether to paginate ('yes'/'true' always assumed if 'page'
+            or 'rows_per_page' is given)
         page: which page (starting from 1) of the paginated results to return
         rows_per_page: how many entries to return per page
     """
@@ -97,7 +98,8 @@ def plugin_model(name):
     if mimetype.endswith('json') or mimetype.endswith('javascript'):
         # JSON-P response
         data = None
-        if 'paginate' in flask.request.args or \
+        if flask.request.args.get('paginate') == 'true' or \
+           flask.request.args.get('paginate') == 'yes' or \
            'page' in flask.request.args or \
            'rows_per_page' in flask.request.args:
             # paginate results
