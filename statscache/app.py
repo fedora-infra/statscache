@@ -4,6 +4,7 @@ import statscache.plugins
 import statscache.utils
 import statscache.frequency
 import json
+import datetime
 
 app = flask.Flask(__name__)
 
@@ -52,18 +53,41 @@ def plugin_index():
 
 @app.route('/api/<name>')
 def plugin_model(name):
-    """ Get the contents of the plugin's model """
+    """ Get the contents of the plugin's model
+
+    Arguments (from query string):
+        order: ascend ('asc') or descend ('desc') results by timestamp
+        start: exclude results older than the given UTC timestamp
+        stop: exclude results newer than the given UTC timestamp
+    """
     plugin = plugins.get(name)
     if not hasattr(plugin, 'model'):
         return '"No such model for \'{}\'"'.format(name), 404
     model = plugin.model
-    rows = session.query(model).all()
+    query = session.query(model)
+    # order the query
+    if flask.request.args.get('order') == 'asc':
+        query = query.order_by(model.timestamp.asc())
+    else:
+        query = query.order_by(model.timestamp.desc())
+    # filter the query by the desired time window
+    start = flask.request.args.get('start')
+    if start is not None:
+        query = query.filter(
+            model.timestamp >= datetime.datetime.fromtimestamp(int(start))
+        )
+    stop = flask.request.args.get('stop')
+    if stop is not None:
+        query = query.filter(
+            model.timestamp <= datetime.datetime.fromtimestamp(int(stop))
+        )
+
     mimetype = get_mimetype()
     if mimetype.endswith('json') or mimetype.endswith('javascript'):
-        return jsonp(model.to_json(rows))
+        return jsonp(model.to_json(query.all()))
     elif mimetype.endswith('csv'):
         return flask.Response(
-            response=model.to_csv(rows),
+            response=model.to_csv(query.all()),
             status=200,
             mimetype=mimetype
         )
