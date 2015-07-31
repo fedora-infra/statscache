@@ -4,7 +4,11 @@ import statscache.plugins
 import statscache.utils
 import statscache.frequency
 import json
+import time
 import datetime
+
+DEFAULT_ROWS_PER_PAGE = 100
+MAXIMUM_ROWS_PER_PAGE = 100
 
 app = flask.Flask(__name__)
 
@@ -55,36 +59,78 @@ def plugin_index():
 def plugin_model(name):
     """ Get the contents of the plugin's model
 
+    Pagination is optionally available for JSON[-P] responses.
+
     Arguments (from query string):
         order: ascend ('asc') or descend ('desc') results by timestamp
         start: exclude results older than the given UTC timestamp
         stop: exclude results newer than the given UTC timestamp
+        paginate: whether to paginate ('yes'/'true' assumed if 'page' is given)
+        page: which page (starting from 1) of the paginated results to return
+        rows_per_page: how many entries to return per page
     """
     plugin = plugins.get(name)
     if not hasattr(plugin, 'model'):
         return '"No such model for \'{}\'"'.format(name), 404
     model = plugin.model
     query = session.query(model)
+
     # order the query
     if flask.request.args.get('order') == 'asc':
         query = query.order_by(model.timestamp.asc())
     else:
         query = query.order_by(model.timestamp.desc())
+
     # filter the query by the desired time window
     start = flask.request.args.get('start')
     if start is not None:
         query = query.filter(
-            model.timestamp >= datetime.datetime.fromtimestamp(int(start))
+            model.timestamp >= datetime.datetime.fromtimestamp(float(start))
         )
-    stop = flask.request.args.get('stop')
-    if stop is not None:
-        query = query.filter(
-            model.timestamp <= datetime.datetime.fromtimestamp(int(stop))
-        )
+    # always include a stop time for consistent pagination results
+    stop = flask.request.args.get('stop', default=time.time())
+    query = query.filter(
+            model.timestamp <= datetime.datetime.fromtimestamp(float(stop))
+    )
 
     mimetype = get_mimetype()
     if mimetype.endswith('json') or mimetype.endswith('javascript'):
-        return jsonp(model.to_json(query.all()))
+        # JSON-P response
+        data = None
+        if 'paginate' in flask.request.args or \
+           'page' in flask.request.args or \
+           'rows_per_page' in flask.request.args:
+            # paginate results
+            page_num = int(flask.request.args.get('page', default=1))
+            page_len = min(
+                MAXIMUM_ROWS_PER_PAGE,
+                int(flask.request.args.get('rows_per_page',
+                                           default=DEFAULT_ROWS_PER_PAGE))
+            )
+            query_string = '&'.join([
+                'page={page_num}',
+                'rows_per_page={page_len}',
+                'order=' + flask.request.args.get('order', default='desc'),
+                'stop=' + str(stop),
+            ] + (['start=' + str(start)] if start is not None else []))
+            (items, count, total, prev, next) = statscache.utils.paginate(
+                query,
+                page_num,
+                page_len,
+                '?'.join([flask.request.base_url, query_string])
+            )
+            data = ("{ 'items': %s,"
+                    "  'count': %s,"
+                    "  'total': %s,"
+                    "  'next': '%s',"
+                    "  'prev': '%s' }") % (model.to_json(items),
+                                           count,
+                                           total,
+                                           next,
+                                           prev)
+        else:
+            data = model.to_json(query.all())
+        return jsonp(data)
     elif mimetype.endswith('csv'):
         return flask.Response(
             response=model.to_csv(query.all()),
