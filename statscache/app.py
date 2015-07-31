@@ -43,7 +43,7 @@ def get_mimetype():
 
 @app.route('/api/')
 def plugin_index():
-    """ Generate a JSON-P response with an index of plugins (as an array) """
+    """ Get an index of the available plugins (as an array) """
     mimetype = get_mimetype()
     if not mimetype.endswith('json') and not mimetype.endswith('javascript'):
         flask.abort(406)
@@ -52,7 +52,7 @@ def plugin_index():
 
 @app.route('/api/<name>')
 def plugin_model(name):
-    """ Generate a JSON-P response with the content of the plugin's model """
+    """ Get the contents of the plugin's model """
     plugin = plugins.get(name)
     if not hasattr(plugin, 'model'):
         return '"No such model for \'{}\'"'.format(name), 404
@@ -75,7 +75,7 @@ def plugin_model(name):
 
 @app.route('/api/<name>/layout')
 def plugin_layout(name):
-    """ Generate a JSON-P response with the content of the plugin's layout """
+    """ Get the layout of the plugin """
     plugin = plugins.get(name)
     mimetype = get_mimetype()
     if not mimetype.endswith('json') and not mimetype.endswith('javascript'):
