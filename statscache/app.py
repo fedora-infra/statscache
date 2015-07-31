@@ -109,7 +109,7 @@ def unacceptable_content(error):
 
 if __name__ == '__main__':
     # initialize plugins
-    frequencies = { None: None } # mapping of intervals to reusable Frequency instances
+    frequencies = { None: None } # mapping of intervals to Frequency instances
     for plugin_class in statscache.utils.plugin_classes:
         if plugin_class.interval not in frequencies:
             frequencies[plugin_class.interval] = \
