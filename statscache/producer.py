@@ -40,16 +40,15 @@ class StatsProducerBase(moksha.hub.api.PollingProducer):
         self.plugins = []
         for plugin_class in self.plugin_classes:
             plugin = plugin_class(self.frequency, self.hub.config)
-            self.plugins.append(plugin)
             try:
                 initialize = getattr(plugin, 'initialize', None)
                 if initialize is not None:
                     plugin.initialize(session)
                     session.commit()
                 log.info("Initialized plugin %r" % plugin.ident)
+                self.plugins.append(plugin)
             except Exception:
                 log.exception("Failed to initialize plugin %r" % plugin)
-                del self.plugins[-1] # remove the dud plugin instance
                 session.rollback()
 
     def make_session(self):
