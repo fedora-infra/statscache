@@ -46,7 +46,7 @@ setup(
             "statscache_consumer = statscache.consumer:StatsConsumer",
         ],
         'moksha.producer': [
-            "statscache_producers = statscache.producer:producers",
+            "statscache_producer = statscache.producer:StatsProducer",
         ],
     },
 )

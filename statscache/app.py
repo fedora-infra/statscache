@@ -15,7 +15,9 @@ MAXIMUM_ROWS_PER_PAGE = 100
 app = flask.Flask(__name__)
 
 config = fedmsg.config.load_config()
-plugins = {} # mapping of identifiers to plugin instances
+plugins = {
+    plugin.ident: plugin for plugin in statscache.utils.init_plugins(config)
+} # mapping of identifiers to plugin instances
 
 uri = config['statscache.sqlalchemy.uri']
 session = statscache.plugins.init_model(uri)
@@ -209,15 +211,6 @@ def unacceptable_content(error):
 
 
 if __name__ == '__main__':
-    # initialize plugins
-    frequencies = { None: None } # mapping of intervals to Frequency instances
-    for plugin_class in statscache.utils.plugin_classes:
-        if plugin_class.interval not in frequencies:
-            frequencies[plugin_class.interval] = \
-                statscache.frequency.Frequency(plugin_class.interval)
-        plugin = plugin_class(frequencies[plugin_class.interval], config)
-        plugins[plugin.ident] = plugin
-    # ...and fire up the web app
     app.run(
         debug=True,
     )

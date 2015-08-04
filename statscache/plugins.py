@@ -137,6 +137,7 @@ class BasePlugin(object):
     name = None
     summary = None
     description = None
+
     interval = None # this must be either None or a datetime.timedelta instance
     model = None
 
@@ -170,6 +171,11 @@ class BasePlugin(object):
         return ident
 
     @abc.abstractmethod
-    def handle(self, session, messages):
-        """ Process a list of messages using the given database session """
+    def process(self, message):
+        """ Process a message """
+        pass
+
+    @abc.abstractmethod
+    def update(self, session):
+        """ Update the model using the database session """
         pass

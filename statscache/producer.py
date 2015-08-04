@@ -12,95 +12,37 @@ import logging
 log = logging.getLogger("fedmsg")
 
 
-class StatsProducerBase(moksha.hub.api.PollingProducer):
+class StatsProducer(moksha.hub.api.PollingProducer):
     """
     An abstract base class for dynamically generated producers. Subclasses need
     only define 'frequency' and 'plugin_classes' attributes as well as define a
     unique class name for themselves.
     """
+
     def __init__(self, hub):
-        log.debug("%s initializing" % type(self).__name__)
-        super(StatsProducerBase, self).__init__(hub)
+        log.debug("statscache producer initializing")
+        self.frequency = hub.config['statscache.producer.frequency']
+        super(StatsProducer, self).__init__(hub)
 
         fedmsg.meta.make_processors(**self.hub.config)
 
-        # set up the cache and connect to the consumer
-        self.cache = []
-        statscache.utils.find_stats_consumer(self.hub).register(self)
+        # grab the list of plugins from the consumer
+        self.plugins = statscache.utils.find_stats_consumer(self.hub).plugins
 
-        log.debug("%s initialized with %r plugins" % (
-            type(self).__name__, len(self.plugin_classes)))
-
-        # Create any absent db tables (were new plugins installed?)
-        uri = self.hub.config['statscache.sqlalchemy.uri']
-        statscache.plugins.create_tables(uri)
-
-        # Loop over our plugin classes to instantiate and initialize them
-        session = self.make_session()
-        self.plugins = []
-        for plugin_class in self.plugin_classes:
-            plugin = plugin_class(self.frequency, self.hub.config)
-            try:
-                initialize = getattr(plugin, 'initialize', None)
-                if initialize is not None:
-                    plugin.initialize(session)
-                    session.commit()
-                log.info("Initialized plugin %r" % plugin.ident)
-                self.plugins.append(plugin)
-            except Exception:
-                log.exception("Failed to initialize plugin %r" % plugin)
-                session.rollback()
+        log.debug("statscache producer initialized")
 
     def make_session(self):
         """ Initiate database connection """
         uri = self.hub.config['statscache.sqlalchemy.uri']
         return statscache.plugins.init_model(uri)
 
-    def buffer(self, message):
-        self.cache.append(message)
-
     def poll(self):
-        """
-        Empty the cache and distribute the contents to each plugin for
-        processing.
-        """
-        cache = self.cache
-        self.cache = []
-
-        n = len(cache)
-        log.info("%s called with %i cached items." % (type(self).__name__, n))
-
+        """ Commit the accumulated database updates of each plugin """
+        session = self.make_session()
         for plugin in self.plugins:
-            log.info("  Calling %r" % plugin.ident)
-            session = self.make_session()
             try:
-                plugin.handle(session, cache)
-                session.commit()
+                plugin.update(session)
+                log.info("Updating model for %r" % plugin.ident)
             except:
-                log.exception('Error during plugin %r handling.' % plugin)
+                log.exception("Error during model update for %r" % plugin)
                 session.rollback()
-
-
-def factory():
-    """
-    Producer class factory based on the frequencies of the available plugin
-    classes.
-    """
-    plugins_by_interval = defaultdict(list)
-    for plugin_class in statscache.utils.plugin_classes:
-        interval = plugin_class.interval
-        if isinstance(interval, datetime.timedelta):
-            plugins_by_interval[interval].append(plugin_class)
-
-    for interval, plugin_classes in plugins_by_interval.items():
-        class StatsProducerAnon(StatsProducerBase):
-            """ Dynamically generated class for a specific frequency """
-            pass # we need to programmatically set class attributes
-        frequency = statscache.frequency.Frequency(interval)
-        StatsProducerAnon.frequency = frequency
-        StatsProducerAnon.plugin_classes = plugin_classes
-        StatsProducerAnon.__name__ = 'StatsProducer' + str(frequency)
-        yield StatsProducerAnon
-    return
-
-producers = factory()
