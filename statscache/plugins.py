@@ -139,6 +139,7 @@ class BasePlugin(object):
     description = None
 
     interval = None # this must be either None or a datetime.timedelta instance
+    backlog_delta = None # how far back to process backlog (None is unlimited)
     model = None
 
     datagrepper_endpoint = 'https://apps.fedoraproject.org/datagrepper/raw/'
@@ -179,3 +180,15 @@ class BasePlugin(object):
     def update(self, session):
         """ Update the model using the database session """
         pass
+
+    def latest(self, session):
+        """ Get the datetime to which the model is up-to-date """
+        if self.backlog_delta is not None:
+            return datetime.datetime.now() - self.backlog_delta
+        else:
+            return getattr(session.query(self.model).order_by(
+                self.model.timestamp.desc()).first(), 'timestamp', None)
+
+    def revert(self, when, session):
+        """ Revert the model change(s) made as of the given datetime """
+        session.query(self.model).filter(self.model.timestamp >= when).delete()

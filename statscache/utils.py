@@ -1,6 +1,9 @@
 import inspect
 import pkg_resources
+import requests
+import time
 
+from statscache.frequency import Frequency
 import statscache.plugins
 from statscache.frequency import Frequency
 
@@ -15,6 +18,35 @@ def find_stats_consumer(hub):
             return cons
 
     raise ValueError('StatsConsumer not found.')
+
+
+def datagrep(start, stop, quantum=100):
+    """ Yield messages generated in the given time interval from datagrepper
+
+    Messages are ordered ascending by age (from oldest to newest), so that
+    models may be kept up-to-date through some point, to allow restart in case
+    of failure. Messages are generated in collections of the given quantum at a
+    time.
+    """
+    endpoint = 'https://apps.fedoraproject.org/datagrepper/raw/'
+    page = 0
+    pages = 1
+    arguments = {
+        'start': time.mktime(start.timetuple()),
+        'page': page,
+        'order': 'asc',
+        'rows_per_page': quantum,
+    }
+    if stop is not None:
+        arguments['end'] = time.mktime(stop.timetuple()),
+    while page < pages:
+        page += 1
+        arguments['page'] = page
+        response = requests.get(endpoint, params=arguments).json()
+        # Correct page count, which is always necessary on the first request
+        # and possibly also when stop is None
+        pages = response['pages']
+        yield response['raw_messages']
 
 
 def init_plugins(config):

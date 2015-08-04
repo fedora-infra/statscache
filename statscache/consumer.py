@@ -1,4 +1,5 @@
 import copy
+import datetime
 
 import fedmsg.consumers
 import statscache.utils
@@ -18,31 +19,56 @@ class StatsConsumer(fedmsg.consumers.FedmsgConsumer):
         """ Instantiate the consumer and a default list of buckets """
         log.debug("statscache consumer initializing")
         super(StatsConsumer, self).__init__(*args, **kwargs)
+        # From now on, incoming messages will be queued. The backlog of
+        # fedmsg traffic that was missed while offline therefore extends
+        # from some unkown point(s) in the past until now.
+        end_backlog = datetime.datetime.now()
 
         # Instantiate plugins
         self.plugins = statscache.utils.init_plugins(self.hub.config)
         log.info("instantiated plugins: " +
-            ', '.join([plugin.ident for plugin in self.plugins])
-        )
+            ', '.join([plugin.ident for plugin in self.plugins]))
 
-        # Create any absent db tables (were new plugins installed?)
+        # Create any absent database tables (were new plugins installed?)
         uri = self.hub.config['statscache.sqlalchemy.uri']
         statscache.plugins.create_tables(uri)
 
         # Prepare to process backlogged fedmsg traffic
+        epoch = self.hub.config['statscache.consumer.epoch']
         session = statscache.plugins.init_model(uri)
 
-        for plugin in self.plugins:
-            try:
-                if hasattr(plugin, 'initialize'):
-                    plugin.initialize(session)
-                log.info("Initialized plugin %r" % plugin.ident)
-            except Exception as e:
-                log.exception(
-                    "Failed to initialize plugin %r: %s" % (plugin.ident, e)
-                )
-                session.rollback()
+        # Compute pairs of plugins and the point up to which they are accurate
+        fst = lambda (x, _): x
+        plugins_by_age = []
+        for (age, plugin) in sorted([(plugin.latest(session) or epoch, plugin)
+                                     for plugin in self.plugins], key=fst):
+            if len(plugins_by_age) > 0 and plugins_by_age[-1][0] == age:
+                plugins_by_age[-1][1].append(plugin)
+            else:
+                plugins_by_age.append((age, [plugin]))
 
+        # Retroactively process missed fedmsg traffic
+        # Using the pairs of plugins and associated age, query datagrepper for
+        # missing fedmsg traffic for each interval starting on the age of one
+        # set of plugins and ending on the age of the next set of plugins.
+        # This way, we can generate the least necessary amount of network
+        # traffic without reverting all plugins back to the oldest age amongst
+        # them (which would mean throwing away *all* data if a new plugin were
+        # ever added).
+        self.plugins = [] # readd as we enter period where data is needed
+        plugins_by_age_iter = iter(plugins_by_age) # secondary iterator
+        next(plugins_by_age_iter) # drop the first item, we don't need it
+        for (start, plugins) in plugins_by_age:
+            self.plugins.extend(plugins) # Reinsert plugins
+            (stop, _) = next(plugins_by_age_iter, (end_backlog, None))
+            log.info("consuming historical fedmsg traffic from %s up to %s"
+                % (start, stop))
+            for messages in statscache.utils.datagrep(start, stop):
+                for plugin in self.plugins:
+                    # Delete any partially completed rows, timestamped at start
+                    plugin.revert(start, session)
+                    map(plugin.process, copy.deepcopy(messages))
+                    plugin.update(session)
         log.debug("statscache consumer initialized")
 
     def consume(self, raw_msg):
