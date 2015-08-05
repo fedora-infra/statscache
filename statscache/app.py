@@ -4,6 +4,7 @@ import statscache.plugins
 import statscache.utils
 import statscache.frequency
 import json
+import urllib
 import time
 import datetime
 
@@ -109,12 +110,15 @@ def plugin_model(name):
                 int(flask.request.args.get('rows_per_page',
                                            default=DEFAULT_ROWS_PER_PAGE))
             )
-            query_string = '&'.join([
-                'page={page_num}',
-                'rows_per_page={page_len}',
-                'order=' + flask.request.args.get('order', default='desc'),
-                'stop=' + str(stop),
-            ] + (['start=' + str(start)] if start is not None else []))
+            query_params = {
+                'page': page_num,
+                'rows_per_page': page_len,
+                'order': flask.request.args.get('order', default='desc'),
+                'stop': stop,
+            }
+            if start is not None:
+                query_params['start'] = start
+            query_string = urllib.urlencode(query_params)
             (items, count, total, prev, next) = statscache.utils.paginate(
                 query,
                 page_num,
