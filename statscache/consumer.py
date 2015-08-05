@@ -1,6 +1,7 @@
 import copy
 import datetime
 
+import fedmsg.meta
 import fedmsg.consumers
 import statscache.utils
 
@@ -23,6 +24,8 @@ class StatsConsumer(fedmsg.consumers.FedmsgConsumer):
         # fedmsg traffic that was missed while offline therefore extends
         # from some unkown point(s) in the past until now.
         end_backlog = datetime.datetime.now()
+
+        fedmsg.meta.make_processors(**self.hub.config)
 
         # Instantiate plugins
         self.plugins = statscache.utils.init_plugins(self.hub.config)

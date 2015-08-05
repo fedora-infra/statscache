@@ -1,7 +1,6 @@
 import datetime
 from collections import defaultdict
 
-import fedmsg.meta
 import moksha.hub.api
 
 import statscache.plugins
@@ -23,8 +22,6 @@ class StatsProducer(moksha.hub.api.PollingProducer):
         log.debug("statscache producer initializing")
         self.frequency = hub.config['statscache.producer.frequency']
         super(StatsProducer, self).__init__(hub)
-
-        fedmsg.meta.make_processors(**self.hub.config)
 
         # grab the list of plugins from the consumer
         self.plugins = statscache.utils.find_stats_consumer(self.hub).plugins
