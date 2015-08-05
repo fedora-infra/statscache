@@ -3,7 +3,14 @@ import fedmsg.config
 import statscache.plugins
 import statscache.utils
 import statscache.frequency
+import copy
 import json
+import urllib
+import time
+import datetime
+
+DEFAULT_ROWS_PER_PAGE = 100
+MAXIMUM_ROWS_PER_PAGE = 100
 
 app = flask.Flask(__name__)
 
@@ -14,7 +21,66 @@ uri = config['statscache.sqlalchemy.uri']
 session = statscache.plugins.init_model(uri)
 
 
-def jsonp(body):
+def wants_pagination():
+    """ Whether the request desires response pagination """
+    argument = flask.request.args.get('paginate')
+    return argument == 'true' or argument == 'yes' or \
+        'page' in flask.request.args or 'rows_per_page' in flask.request.args
+
+def paginate(queryset):
+    """
+    Generate data for rendering the current page based on the view arguments.
+
+    Args:
+        queryset: A SQLAlchemy queryset encompassing all the data to
+            be paginated (and nothing else).
+    Returns:
+        A tuple: (page_items, prev_link, next_link)
+        where
+            items: Result of the query for the current page.
+            headers: A dictionary of HTTP headers to include in the response,
+                including Link (with both next and previous relations),
+                X-Link-Number, and X-Link-Count.
+    """
+    # parse view arguments
+    page_number = int(flask.request.args.get('page', default=1))
+    page_length = min(
+        MAXIMUM_ROWS_PER_PAGE,
+        int(flask.request.args.get('rows_per_page',
+                                   default=DEFAULT_ROWS_PER_PAGE))
+    )
+
+    items_count = queryset.count()
+    page_count = items_count / page_length + \
+        (1 if items_count % page_length > 0 else 0)
+    queryset = \
+        queryset.offset((page_number - 1) * page_length).limit(page_length)
+
+    # prepare response link headers
+    page_links = []
+    query_params = copy.deepcopy(flask.request.view_args) # use same args
+    if page_number > 1:
+        query_params['page'] = page_number - 1
+        page_links = ['<{}>; rel="previous"'.format(
+            '?'.join([flask.request.base_url, urllib.urlencode(query_params)])
+        )]
+    if page_number < page_count:
+        query_params['page'] = page_number + 1
+        page_links.append('<{}>; rel="next"'.format(
+            '?'.join([flask.request.base_url, urllib.urlencode(query_params)])
+        ))
+    headers = {
+        'Link': ', '.join(page_links),
+        'X-Link-Count': page_count,
+        'X-Link-Number': page_number,
+        'Access-Control-Allow-Origin': '*',
+        'Access-Control-Expose-Headers': 'Link, X-Link-Number, X-Link-Count',
+    }
+
+    return (queryset.all(), headers)
+
+
+def jsonp(body, headers=None):
     """ Helper function to send either a JSON or JSON-P response """
     mimetype = 'application/json'
     callback = flask.request.args.get('callback')
@@ -24,7 +90,8 @@ def jsonp(body):
     return flask.Response(
         response=body,
         status=200,
-        mimetype=mimetype
+        mimetype=mimetype,
+        headers=headers or {}
     )
 
 
@@ -43,7 +110,7 @@ def get_mimetype():
 
 @app.route('/api/')
 def plugin_index():
-    """ Generate a JSON-P response with an index of plugins (as an array) """
+    """ Get an index of the available plugins (as an array) """
     mimetype = get_mimetype()
     if not mimetype.endswith('json') and not mimetype.endswith('javascript'):
         flask.abort(406)
@@ -52,20 +119,54 @@ def plugin_index():
 
 @app.route('/api/<name>')
 def plugin_model(name):
-    """ Generate a JSON-P response with the content of the plugin's model """
+    """ Get the contents of the plugin's model
+
+    Pagination is optionally available.
+
+    Arguments (from query string):
+        order: ascend ('asc') or descend ('desc') results by timestamp
+        start: exclude results older than the given UTC timestamp
+        stop: exclude results newer than the given UTC timestamp
+        paginate: whether to paginate ('yes'/'true' always assumed if 'page'
+            or 'rows_per_page' is given)
+        page: which page (starting from 1) of the paginated results to return
+        rows_per_page: how many entries to return per page
+    """
     plugin = plugins.get(name)
     if not hasattr(plugin, 'model'):
         return '"No such model for \'{}\'"'.format(name), 404
     model = plugin.model
-    rows = session.query(model).all()
+    query = session.query(model)
+
+    # order the query
+    if flask.request.args.get('order') == 'asc':
+        query = query.order_by(model.timestamp.asc())
+    else:
+        query = query.order_by(model.timestamp.desc())
+
+    # filter the query by the desired time window
+    start = flask.request.args.get('start')
+    if start is not None:
+        query = query.filter(
+            model.timestamp >= datetime.datetime.fromtimestamp(float(start))
+        )
+    # always include a stop time for consistent pagination results
+    stop = flask.request.args.get('stop', default=time.time())
+    query = query.filter(
+            model.timestamp <= datetime.datetime.fromtimestamp(float(stop))
+    )
+
     mimetype = get_mimetype()
+    (items, headers) = paginate(query) if wants_pagination() else (query.all(),
+                                                                   {})
     if mimetype.endswith('json') or mimetype.endswith('javascript'):
-        return jsonp(model.to_json(rows))
+        return jsonp(model.to_json(items), headers=headers)
     elif mimetype.endswith('csv'):
         return flask.Response(
-            response=model.to_csv(rows),
+            response=model.to_csv(items),
             status=200,
-            mimetype=mimetype
+            mimetype=mimetype,
+            headers=headers
         )
 #    elif mimetype.endswith('html'):
 #        return flask.render_template('view.html', data=model.to_json(rows))
@@ -75,7 +176,7 @@ def plugin_model(name):
 
 @app.route('/api/<name>/layout')
 def plugin_layout(name):
-    """ Generate a JSON-P response with the content of the plugin's layout """
+    """ Get the layout of the plugin """
     plugin = plugins.get(name)
     mimetype = get_mimetype()
     if not mimetype.endswith('json') and not mimetype.endswith('javascript'):
@@ -109,7 +210,7 @@ def unacceptable_content(error):
 
 if __name__ == '__main__':
     # initialize plugins
-    frequencies = { None: None } # mapping of intervals to reusable Frequency instances
+    frequencies = { None: None } # mapping of intervals to Frequency instances
     for plugin_class in statscache.utils.plugin_classes:
         if plugin_class.interval not in frequencies:
             frequencies[plugin_class.interval] = \
