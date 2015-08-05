@@ -91,7 +91,7 @@ def jsonp(body, headers=None):
         response=body,
         status=200,
         mimetype=mimetype,
-        headers=None or {}
+        headers=headers or {}
     )
 
 
