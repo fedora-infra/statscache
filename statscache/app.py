@@ -3,6 +3,7 @@ import fedmsg.config
 import statscache.plugins
 import statscache.utils
 import statscache.frequency
+import copy
 import json
 import urllib
 import time
@@ -20,7 +21,65 @@ uri = config['statscache.sqlalchemy.uri']
 session = statscache.plugins.init_model(uri)
 
 
-def jsonp(body):
+def wants_pagination():
+    """ Whether the request desires response pagination """
+    argument = flask.request.args.get('paginate')
+    return argument == 'true' or argument == 'yes' or \
+        'page' in flask.request.args or 'rows_per_page' in flask.request.args
+
+def paginate(queryset):
+    """
+    Generate data for rendering the current page based on the view arguments.
+
+    Args:
+        queryset: A SQLAlchemy queryset encompassing all the data to
+            be paginated (and nothing else).
+    Returns:
+        A tuple: (page_items, prev_link, next_link)
+        where
+            items: Result of the query for the current page.
+            headers: A dictionary of HTTP headers to include in the response,
+                including Link (with both next and previous relations),
+                X-Link-Number, and X-Link-Count.
+    """
+    # parse view arguments
+    page_number = int(flask.request.args.get('page', default=1))
+    page_length = min(
+        MAXIMUM_ROWS_PER_PAGE,
+        int(flask.request.args.get('rows_per_page',
+                                   default=DEFAULT_ROWS_PER_PAGE))
+    )
+
+    items_count = queryset.count()
+    page_count = items_count / page_length + \
+        (1 if items_count % page_length > 0 else 0)
+    queryset = \
+        queryset.offset((page_number - 1) * page_length).limit(page_length)
+
+    # prepare response link headers
+    page_links = []
+    query_params = copy.deepcopy(flask.request.view_args) # use same args
+    if page_number > 1:
+        query_params['page'] = page_number - 1
+        page_links = ['<{}>; rel="previous"'.format(
+            '?'.join([flask.request.base_url, urllib.urlencode(query_params)])
+        )]
+    if page_number < page_count:
+        query_params['page'] = page_number + 1
+        page_links.append('<{}>; rel="next"'.format(
+            '?'.join([flask.request.base_url, urllib.urlencode(query_params)])
+        ))
+    headers = {
+        'Link': ', '.join(page_links),
+        'X-Link-Count': page_count,
+        'X-Link-Number': page_number,
+        'Access-Control-Allow-Origin': '*',
+    }
+
+    return (queryset.all(), headers)
+
+
+def jsonp(body, headers={}):
     """ Helper function to send either a JSON or JSON-P response """
     mimetype = 'application/json'
     callback = flask.request.args.get('callback')
@@ -30,7 +89,8 @@ def jsonp(body):
     return flask.Response(
         response=body,
         status=200,
-        mimetype=mimetype
+        mimetype=mimetype,
+        headers=headers
     )
 
 
@@ -96,52 +156,16 @@ def plugin_model(name):
     )
 
     mimetype = get_mimetype()
+    (items, headers) = paginate(query) if wants_pagination() else (query.all(),
+                                                                   {})
     if mimetype.endswith('json') or mimetype.endswith('javascript'):
-        # JSON-P response
-        data = None
-        if flask.request.args.get('paginate') == 'true' or \
-           flask.request.args.get('paginate') == 'yes' or \
-           'page' in flask.request.args or \
-           'rows_per_page' in flask.request.args:
-            # paginate results
-            page_num = int(flask.request.args.get('page', default=1))
-            page_len = min(
-                MAXIMUM_ROWS_PER_PAGE,
-                int(flask.request.args.get('rows_per_page',
-                                           default=DEFAULT_ROWS_PER_PAGE))
-            )
-            query_params = {
-                'page': page_num,
-                'rows_per_page': page_len,
-                'order': flask.request.args.get('order', default='desc'),
-                'stop': stop,
-            }
-            if start is not None:
-                query_params['start'] = start
-            query_string = urllib.urlencode(query_params)
-            (items, count, total, prev, next) = statscache.utils.paginate(
-                query,
-                page_num,
-                page_len,
-                '?'.join([flask.request.base_url, query_string])
-            )
-            data = ("{ 'items': %s,"
-                    "  'count': %s,"
-                    "  'total': %s,"
-                    "  'next': '%s',"
-                    "  'prev': '%s' }") % (model.to_json(items),
-                                           count,
-                                           total,
-                                           next,
-                                           prev)
-        else:
-            data = model.to_json(query.all())
-        return jsonp(data)
+        return jsonp(model.to_json(items), headers=headers)
     elif mimetype.endswith('csv'):
         return flask.Response(
-            response=model.to_csv(query.all()),
+            response=model.to_csv(items),
             status=200,
-            mimetype=mimetype
+            mimetype=mimetype,
+            headers=headers
         )
 #    elif mimetype.endswith('html'):
 #        return flask.render_template('view.html', data=model.to_json(rows))
