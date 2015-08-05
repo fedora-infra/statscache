@@ -80,7 +80,7 @@ def paginate(queryset):
     return (queryset.all(), headers)
 
 
-def jsonp(body, headers={}):
+def jsonp(body, headers=None):
     """ Helper function to send either a JSON or JSON-P response """
     mimetype = 'application/json'
     callback = flask.request.args.get('callback')
@@ -91,7 +91,7 @@ def jsonp(body, headers={}):
         response=body,
         status=200,
         mimetype=mimetype,
-        headers=headers
+        headers=None or {}
     )
 
 
