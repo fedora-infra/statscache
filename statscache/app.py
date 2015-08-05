@@ -74,6 +74,7 @@ def paginate(queryset):
         'X-Link-Count': page_count,
         'X-Link-Number': page_number,
         'Access-Control-Allow-Origin': '*',
+        'Access-Control-Expose-Headers': 'Link, X-Link-Number, X-Link-Count',
     }
 
     return (queryset.all(), headers)
@@ -120,7 +121,7 @@ def plugin_index():
 def plugin_model(name):
     """ Get the contents of the plugin's model
 
-    Pagination is optionally available for JSON[-P] responses.
+    Pagination is optionally available.
 
     Arguments (from query string):
         order: ascend ('asc') or descend ('desc') results by timestamp
