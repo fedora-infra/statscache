@@ -144,8 +144,8 @@ class BasePlugin(object):
 
     datagrepper_endpoint = 'https://apps.fedoraproject.org/datagrepper/raw/'
 
-    def __init__(self, frequency, config, model=None):
-        self.frequency = frequency
+    def __init__(self, schedule, config, model=None):
+        self.schedule = schedule
         self.config = config
         if model:
             self.model = model
@@ -166,9 +166,9 @@ class BasePlugin(object):
         replacements = dict(zip(bad, [''] * len(bad)))
         for a, b in replacements.items():
             ident = ident.replace(a, b)
-        frequency = getattr(self, 'frequency', None)
-        if frequency:
-            ident += '-{}'.format(frequency)
+        schedule = getattr(self, 'schedule', None)
+        if schedule:
+            ident += '-{}'.format(schedule)
         return ident
 
     @abc.abstractmethod

@@ -3,9 +3,8 @@ import pkg_resources
 import requests
 import time
 
-from statscache.frequency import Frequency
+from statscache.schedule import Schedule
 import statscache.plugins
-from statscache.frequency import Frequency
 
 import logging
 log = logging.getLogger("fedmsg")
@@ -59,12 +58,12 @@ def init_plugins(config):
     def init_plugin(plugin_class):
         if issubclass(plugin_class, statscache.plugins.BasePlugin):
             interval = plugin_class.interval
-            if interval not in frequencies:
-                frequencies[interval] = Frequency(interval, epoch)
-            plugins.append(plugin_class(frequencies[interval], config))
+            if interval not in schedules:
+                schedules[interval] = Schedule(interval, epoch)
+            plugins.append(plugin_class(schedules[interval], config))
 
     epoch = config['statscache.consumer.epoch']
-    frequencies = { None: None }  # reusable Frequency instances
+    schedules = { None: None }  # reusable Schedule instances
     plugins = []
     for entry_point in pkg_resources.iter_entry_points('statscache.plugin'):
         try:
