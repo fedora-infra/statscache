@@ -60,7 +60,7 @@ def init_plugins(config):
         if issubclass(plugin_class, statscache.plugins.BasePlugin):
             interval = plugin_class.interval
             if interval not in frequencies:
-                frequencies[interval] = Frequency(interval, epoch=epoch)
+                frequencies[interval] = Frequency(interval, epoch)
             plugins.append(plugin_class(frequencies[interval], config))
 
     epoch = config['statscache.consumer.epoch']
