@@ -138,13 +138,15 @@ class BasePlugin(object):
     summary = None
     description = None
     interval = None # this must be either None or a datetime.timedelta instance
+    model = None
 
     datagrepper_endpoint = 'https://apps.fedoraproject.org/datagrepper/raw/'
 
     def __init__(self, frequency, config, model=None):
         self.frequency = frequency
         self.config = config
-        self.model = model or self.make_model()
+        if model:
+            self.model = model
 
         required = ['name', 'summary', 'description']
         for attr in required:

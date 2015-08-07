@@ -31,33 +31,24 @@ class StatsProducerBase(moksha.hub.api.PollingProducer):
         log.debug("%s initialized with %r plugins" % (
             type(self).__name__, len(self.plugin_classes)))
 
-        # Loop over all our plugins twice, pausing in the middle to create
-        # their db tables if necessary.
-        self.plugins = []
-        for plugin_class in self.plugin_classes:
-            plugin = plugin_class(self.frequency, self.hub.config)
-            self.plugins.append(plugin)
-            log.info("Instantiated plugin %r" % plugin.ident)
-
         # Create any absent db tables (were new plugins installed?)
         uri = self.hub.config['statscache.sqlalchemy.uri']
         statscache.plugins.create_tables(uri)
 
-        # Finally, call the initialize method of any plugins that have one.
-        # This typically makes long queries to datagrepper for historical
-        # information.
+        # Loop over our plugin classes to instantiate and initialize them
         session = self.make_session()
-        for plugin in self.plugins:
+        self.plugins = []
+        for plugin_class in self.plugin_classes:
+            plugin = plugin_class(self.frequency, self.hub.config)
             try:
                 initialize = getattr(plugin, 'initialize', None)
                 if initialize is not None:
                     plugin.initialize(session)
                     session.commit()
                 log.info("Initialized plugin %r" % plugin.ident)
+                self.plugins.append(plugin)
             except Exception:
                 log.exception("Failed to initialize plugin %r" % plugin)
-                # TODO -- if the plugin fails to initialize we should remove it
-                # from `self.plugins`.
                 session.rollback()
 
     def make_session(self):
