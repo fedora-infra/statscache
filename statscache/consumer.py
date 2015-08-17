@@ -22,7 +22,7 @@ class StatsConsumer(fedmsg.consumers.FedmsgConsumer):
         super(StatsConsumer, self).__init__(*args, **kwargs)
         # From now on, incoming messages will be queued. The backlog of
         # fedmsg traffic that was missed while offline therefore extends
-        # from some unkown point(s) in the past until now.
+        # from some unknown point(s) in the past until now.
         end_backlog = datetime.datetime.now()
 
         fedmsg.meta.make_processors(**self.hub.config)
