@@ -70,7 +70,8 @@ class StatsConsumer(fedmsg.consumers.FedmsgConsumer):
                 for plugin in self.plugins:
                     # Delete any partially completed rows, timestamped at start
                     plugin.revert(start, session)
-                    map(plugin.process, copy.deepcopy(messages))
+                    for message in messages:
+                        plugin.process(copy.deepcopy(message))
                     plugin.update(session)
         log.debug("statscache consumer initialized")
 

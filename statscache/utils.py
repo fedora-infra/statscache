@@ -70,7 +70,8 @@ def init_plugins(config):
             entry_object = entry_point.load()
             # the entry-point object is either a plugin or a collection of them
             try:
-                map(init_plugin, entry_object)
+                for entry_element in entry_object:
+                    init_plugin(entry_element)
             except TypeError:
                 init_plugin(entry_object)
         except Exception:
