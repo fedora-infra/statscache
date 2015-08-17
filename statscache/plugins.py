@@ -183,11 +183,18 @@ class BasePlugin(object):
 
     def latest(self, session):
         """ Get the datetime to which the model is up-to-date """
+        times = [
+            # This is the _actual_ latest datetime
+            getattr(session.query(self.model)\
+                    .order_by( self.model.timestamp.desc())\
+                    .first(), 
+                    'timestamp')
+        ]
         if self.backlog_delta is not None:
-            return datetime.datetime.now() - self.backlog_delta
-        else:
-            return getattr(session.query(self.model).order_by(
-                self.model.timestamp.desc()).first(), 'timestamp', None)
+            # This will limit how far back to process data, if statscache has
+            # been down for longer than self.backlog_delta.
+            times.append(datetime.datetime.now() - self.backlog_delta)
+        return max(times) # choose the more recent datetime
 
     def revert(self, when, session):
         """ Revert the model change(s) made as of the given datetime """
