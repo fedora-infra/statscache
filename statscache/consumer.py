@@ -41,10 +41,13 @@ class StatsConsumer(fedmsg.consumers.FedmsgConsumer):
         session = statscache.plugins.init_model(uri)
 
         # Compute pairs of plugins and the point up to which they are accurate
-        fst = lambda (x, _): x
         plugins_by_age = []
-        for (age, plugin) in sorted([(plugin.latest(session) or epoch, plugin)
-                                     for plugin in self.plugins], key=fst):
+        for (age, plugin) in sorted([
+                                        (plugin.latest(session) or epoch,
+                                         plugin)
+                                        for plugin in self.plugins
+                                    ],
+                                    key=lambda (age, _): age):
             if len(plugins_by_age) > 0 and plugins_by_age[-1][0] == age:
                 plugins_by_age[-1][1].append(plugin)
             else:
