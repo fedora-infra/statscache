@@ -8,7 +8,7 @@ config = {
     "statscache.consumer.enabled": True,
     "statscache.sqlalchemy.uri": "sqlite:////var/tmp/statscache-dev-db.sqlite",
     # stats models will go back at least this far (current value arbitrary)
-    "statscache.consumer.epoch": datetime.datetime(year=2015, month=6, day=1),
+    "statscache.consumer.epoch": datetime.datetime(year=2015, month=8, day=8),
     # stats models are updated at this frequency
     "statscache.producer.frequency": datetime.timedelta(seconds=1),
     # Turn on logging for statscache
