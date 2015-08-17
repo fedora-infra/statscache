@@ -186,9 +186,10 @@ class BasePlugin(object):
         times = [
             # This is the _actual_ latest datetime
             getattr(session.query(self.model)\
-                    .order_by( self.model.timestamp.desc())\
+                    .order_by(self.model.timestamp.desc())\
                     .first(), 
-                    'timestamp')
+                    'timestamp',
+                    None)
         ]
         if self.backlog_delta is not None:
             # This will limit how far back to process data, if statscache has
