@@ -69,10 +69,11 @@ class StatsConsumer(fedmsg.consumers.FedmsgConsumer):
             (stop, _) = next(plugins_by_age_iter, (end_backlog, None))
             log.info("consuming historical fedmsg traffic from %s up to %s"
                 % (start, stop))
+            # Delete any partially completed rows, timestamped at start
+            for plugin in self.plugins:
+                plugin.revert(start, session)
             for messages in statscache.utils.datagrep(start, stop):
                 for plugin in self.plugins:
-                    # Delete any partially completed rows, timestamped at start
-                    plugin.revert(start, session)
                     for message in messages:
                         plugin.process(copy.deepcopy(message))
                     plugin.update(session)
