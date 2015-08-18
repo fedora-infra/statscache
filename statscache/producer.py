@@ -13,9 +13,8 @@ log = logging.getLogger("fedmsg")
 
 class StatsProducer(moksha.hub.api.PollingProducer):
     """
-    An abstract base class for dynamically generated producers. Subclasses need
-    only define 'frequency' and 'plugin_classes' attributes as well as define a
-    unique class name for themselves.
+    This class periodically visits all the plugins to request that they update
+    their database models.
     """
 
     def __init__(self, hub):
