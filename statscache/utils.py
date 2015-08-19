@@ -1,6 +1,9 @@
 import inspect
 import pkg_resources
+import requests
+import time
 
+from statscache.schedule import Schedule
 import statscache.plugins
 
 import logging
@@ -16,32 +19,61 @@ def find_stats_consumer(hub):
     raise ValueError('StatsConsumer not found.')
 
 
-def load_plugins():
+def datagrep(start, stop, quantum=100):
+    """ Yield messages generated in the given time interval from datagrepper
+
+    Messages are ordered ascending by age (from oldest to newest), so that
+    models may be kept up-to-date through some point, to allow restart in case
+    of failure. Messages are generated in collections of the given quantum at a
+    time.
     """
-    Return all plugin classes and collections of plugin classes registered as
-    entry-points under statscache.plugin. A plugin class is defined to be a
-    class that inherits from statscache.plugin.BasePlugin
+    endpoint = 'https://apps.fedoraproject.org/datagrepper/raw/'
+    page = 0
+    pages = 1
+    arguments = {
+        'start': time.mktime(start.timetuple()),
+        'page': page,
+        'order': 'asc',
+        'rows_per_page': quantum,
+    }
+    if stop is not None:
+        arguments['end'] = time.mktime(stop.timetuple()),
+    while page < pages:
+        page += 1
+        arguments['page'] = page
+        response = requests.get(endpoint, params=arguments).json()
+        # Correct page count, which is always necessary on the first request
+        # and possibly also when stop is None
+        pages = response['pages']
+        yield response['raw_messages']
+
+
+def init_plugins(config):
+    """ Initialize all available plugins using the given configuration.
+
+    Plugin classes and collections of plugin classes are searched for at all
+    entry-points registered under statscache.plugin. A plugin class is defined
+    to be a class that inherits from statscache.plugin.BasePlugin
     """
-    def is_plugin_class(obj):
-        return (inspect.isclass(obj) and
-                issubclass(obj, statscache.plugins.BasePlugin))
-    plugin_classes = []
-    entry_points = pkg_resources.iter_entry_points('statscache.plugin')
-    for entry_point in entry_points:
+    def init_plugin(plugin_class):
+        if issubclass(plugin_class, statscache.plugins.BasePlugin):
+            interval = plugin_class.interval
+            if interval not in schedules:
+                schedules[interval] = Schedule(interval, epoch)
+            plugins.append(plugin_class(schedules[interval], config))
+
+    epoch = config['statscache.consumer.epoch']
+    schedules = { None: None }  # reusable Schedule instances
+    plugins = []
+    for entry_point in pkg_resources.iter_entry_points('statscache.plugin'):
         try:
-            # the entry-point is either a plugin or a collection of them
             entry_object = entry_point.load()
+            # the entry-point object is either a plugin or a collection of them
             try:
-                for entry_elem in entry_object:
-                    if is_plugin_class(entry_elem):
-                        plugin_classes.append(entry_elem)
+                for entry_element in entry_object:
+                    init_plugin(entry_element)
             except TypeError:
-                if is_plugin_class(entry_object):
-                    plugin_classes.append(entry_object)
+                init_plugin(entry_object)
         except Exception:
             log.exception("Failed to load plugin from %r" % entry_point)
-    return plugin_classes
-
-
-# load the available plugin classes once and save them
-plugin_classes = load_plugins()
+    return plugins

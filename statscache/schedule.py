@@ -1,7 +1,7 @@
 import datetime
 
 
-class Frequency(object):
+class Schedule(object):
     """
     A repeating interval synchronized on an epoch, which defaults to UTC
     midnight of the current day (when this class definiton was loaded).

@@ -137,13 +137,15 @@ class BasePlugin(object):
     name = None
     summary = None
     description = None
+
     interval = None # this must be either None or a datetime.timedelta instance
+    backlog_delta = None # how far back to process backlog (None is unlimited)
     model = None
 
     datagrepper_endpoint = 'https://apps.fedoraproject.org/datagrepper/raw/'
 
-    def __init__(self, frequency, config, model=None):
-        self.frequency = frequency
+    def __init__(self, schedule, config, model=None):
+        self.schedule = schedule
         self.config = config
         if model:
             self.model = model
@@ -164,12 +166,37 @@ class BasePlugin(object):
         replacements = dict(zip(bad, [''] * len(bad)))
         for a, b in replacements.items():
             ident = ident.replace(a, b)
-        frequency = getattr(self, 'frequency', None)
-        if frequency:
-            ident += '-{}'.format(frequency)
+        schedule = getattr(self, 'schedule', None)
+        if schedule:
+            ident += '-{}'.format(schedule)
         return ident
 
     @abc.abstractmethod
-    def handle(self, session, messages):
-        """ Process a list of messages using the given database session """
+    def process(self, message):
+        """ Process a message """
         pass
+
+    @abc.abstractmethod
+    def update(self, session):
+        """ Update the model using the database session """
+        pass
+
+    def latest(self, session):
+        """ Get the datetime to which the model is up-to-date """
+        times = [
+            # This is the _actual_ latest datetime
+            getattr(session.query(self.model)\
+                    .order_by(self.model.timestamp.desc())\
+                    .first(), 
+                    'timestamp',
+                    None)
+        ]
+        if self.backlog_delta is not None:
+            # This will limit how far back to process data, if statscache has
+            # been down for longer than self.backlog_delta.
+            times.append(datetime.datetime.now() - self.backlog_delta)
+        return max(times) # choose the more recent datetime
+
+    def revert(self, when, session):
+        """ Revert the model change(s) made as of the given datetime """
+        session.query(self.model).filter(self.model.timestamp >= when).delete()
