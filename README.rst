@@ -34,27 +34,39 @@ repo.
 Run ``python setup.py develop`` in the ``statscache`` dir first and then run it
 in ``statscache_plugins``.
 
-Lastly, in the main statscache repo directory, run: ``fedmsg-hub`` to start the
-daemon.  You should see lots of fun stats being stored in stdout.
+In the main statscache repo directory, run ``fedmsg-hub`` to start the
+daemon.  You should see lots of fun stats being stored in stdout.  To launch
+the web interface (which currently only serves JSON and CSV responses), run
+``python statscache/app.py`` in the same directory.  You can now view a list of
+the available plugins in JSON by visiting
+`localhost:5000/api/ <localhost:5000/api/>`_, and you can retrieve the
+statistics recorded by a given plugin by appending its identifier to that same
+URL.
 
 You can run the tests with ``python setup.py test``.
 
 How it works
 ------------
 
-When a message arrives, a *fedmsg consumer* receives it and places a copy of it
-into each of several **buckets**.  These buckets correspond to different time
-windows over which we want to process messages.
-
-Those buckets correspond to several **producers** which wake up at different
-time intervals.  For instance, right now we have a one-second producer, a
-five-second producer and a one-minute producer.  These producers wake up at
-their specified interval and empty *their* bucket.  They then pass the contents
-of their bucket to all the registered plugins so those can calculate the
-appropriate stats for that timeframe.
+When a message arrives, a *fedmsg consumer* receives it and hands a copy to
+each loaded plugin for processing.  Each plugin internally caches the results
+of this message processing until a *polling producer* instructs it to update
+its database model and empty its cache.  The frequency at which the polling
+producer does so is configurable at the application level and is set to one
+second by default.
 
 There are base sqlalchemy models that each of the plugins should use to store
 their results (and we can add more types of base models as we discover new
 needs).  But the important thing to know about the base models is that they are
 responsible for knowing how to serialize themselves to different formats for
-the REST API (i.e., render ``.to_csv()`` and ``.to_json()``, etc.)
+the REST API (e.g., render ``.to_csv()`` and ``.to_json()``).
+
+Even though statscache is intended to be a long-running service, the occasional
+reboot is inevitable.  However, having breaks in the processed history of
+fedmsg data may lead some plugins to produce inaccurate statistics.  Luckily,
+statscache come built-in with a mechanism to transparently handle this.  On
+start-up, statscache checks the timestamp of each plugin's most recent database
+update and queries datagrepper for the fedmsg data needed to fill in any gaps.
+On the other hand, if a plugin specifically does not need a continuous view of
+the fedmsg history, then it may specify a "backlog delta," which is the
+maximum backlog of fedmsg data that would be useful to it.
