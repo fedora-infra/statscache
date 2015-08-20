@@ -64,7 +64,7 @@ the REST API (e.g., render ``.to_csv()`` and ``.to_json()``).
 Even though statscache is intended to be a long-running service, the occasional
 reboot is inevitable.  However, having breaks in the processed history of
 fedmsg data may lead some plugins to produce inaccurate statistics.  Luckily,
-statscache come built-in with a mechanism to transparently handle this.  On
+statscache comes built-in with a mechanism to transparently handle this.  On
 start-up, statscache checks the timestamp of each plugin's most recent database
 update and queries datagrepper for the fedmsg data needed to fill in any gaps.
 On the other hand, if a plugin specifically does not need a continuous view of
