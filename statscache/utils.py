@@ -30,18 +30,17 @@ def datagrep(start, stop, quantum=100):
     endpoint = 'https://apps.fedoraproject.org/datagrepper/raw/'
     page = 0
     pages = 1
-    arguments = {
+    session = requests.Session()
+    session.params = {
         'start': time.mktime(start.timetuple()),
-        'page': page,
         'order': 'asc',
         'rows_per_page': quantum,
     }
     if stop is not None:
-        arguments['end'] = time.mktime(stop.timetuple()),
+        session.params['end'] = time.mktime(stop.timetuple()),
     while page < pages:
         page += 1
-        arguments['page'] = page
-        response = requests.get(endpoint, params=arguments).json()
+        response = session.get(endpoint, params={ 'page': page }).json()
         # Correct page count, which is always necessary on the first request
         # and possibly also when stop is None
         pages = response['pages']
