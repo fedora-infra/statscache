@@ -127,6 +127,7 @@ def plugin_model(name):
 
     Arguments (from query string):
         order: ascend ('asc') or descend ('desc') results by timestamp
+        limit: limit results to this many rows, before pagination
         start: exclude results older than the given UTC timestamp
         stop: exclude results newer than the given UTC timestamp
         paginate: whether to paginate ('yes'/'true' always assumed if 'page'
@@ -157,6 +158,9 @@ def plugin_model(name):
     query = query.filter(
             model.timestamp <= datetime.datetime.fromtimestamp(float(stop))
     )
+
+    if 'limit' in flask.request.args:
+        query = query.limit(int(flask.request.args['limit']))
 
     mimetype = get_mimetype()
     (items, headers) = paginate(query) if wants_pagination() else (query.all(),
