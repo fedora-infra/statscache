@@ -127,7 +127,7 @@ def plugin_model(name):
 
     Arguments (from query string):
         order: ascend ('asc') or descend ('desc') results by timestamp
-        limit: limit results to this many rows
+        limit: limit results to this many rows, before pagination
         start: exclude results older than the given UTC timestamp
         stop: exclude results newer than the given UTC timestamp
         paginate: whether to paginate ('yes'/'true' always assumed if 'page'
