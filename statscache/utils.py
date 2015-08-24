@@ -1,6 +1,7 @@
 import inspect
 import pkg_resources
 import requests
+import concurrent.futures
 import time
 
 from statscache.schedule import Schedule
@@ -27,9 +28,11 @@ def datagrep(start, stop, quantum=100):
     of failure. Messages are generated in collections of the given quantum at a
     time.
     """
+    def query(page):
+        return session.get(endpoint, params={ 'page': page }).json()
+
+
     endpoint = 'https://apps.fedoraproject.org/datagrepper/raw/'
-    page = 0
-    pages = 1
     session = requests.Session()
     session.params = {
         'start': time.mktime(start.timetuple()),
@@ -37,14 +40,17 @@ def datagrep(start, stop, quantum=100):
         'rows_per_page': quantum,
     }
     if stop is not None:
-        session.params['end'] = time.mktime(stop.timetuple()),
-    while page < pages:
-        page += 1
-        response = session.get(endpoint, params={ 'page': page }).json()
-        # Correct page count, which is always necessary on the first request
-        # and possibly also when stop is None
-        pages = response['pages']
+        session.params['end'] = time.mktime(stop.timetuple())
+
+    response = query(1)
+    pages = int(response['pages'])
+    yield response['raw_messages']
+    del response
+
+    executor = concurrent.futures.ThreadPoolExecutor()
+    for response in executor.map(query, xrange(2, pages+1)):
         yield response['raw_messages']
+    executor.shutdown()
 
 
 def init_plugins(config):
