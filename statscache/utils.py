@@ -28,10 +28,7 @@ def datagrep(start, stop, quantum=100):
     of failure. Messages are generated in collections of the given quantum at a
     time.
     """
-    def query(page):
-        return session.get(endpoint, params={ 'page': page }).json()
-
-
+    MAX_WORKERS = 8
     endpoint = 'https://apps.fedoraproject.org/datagrepper/raw/'
     session = requests.Session()
     session.params = {
@@ -41,16 +38,19 @@ def datagrep(start, stop, quantum=100):
     }
     if stop is not None:
         session.params['end'] = time.mktime(stop.timetuple())
+    query = lambda page: session.get(endpoint, params={ 'page': page })
 
-    response = query(1)
-    pages = int(response['pages'])
-    yield response['raw_messages']
-    del response
+    # Manually perform the first request in order to get the page count and
+    # (hopefully) spawn some persistent connections prior to entering the
+    # executor map.
+    data = query(1).json()
+    yield data['raw_messages']
+    pages = int(data['pages'])
+    del data
 
-    executor = concurrent.futures.ThreadPoolExecutor()
-    for response in executor.map(query, xrange(2, pages+1)):
-        yield response['raw_messages']
-    executor.shutdown()
+    with concurrent.futures.ThreadPoolExecutor(MAX_WORKERS) as executor:
+        for response in executor.map(query, xrange(2, pages+1)):
+            yield response.json()['raw_messages']
 
 
 def init_plugins(config):
