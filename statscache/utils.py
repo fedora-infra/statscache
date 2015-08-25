@@ -20,7 +20,7 @@ def find_stats_consumer(hub):
     raise ValueError('StatsConsumer not found.')
 
 
-def datagrep(start, stop, workers=1, quantum=100):
+def datagrep(start, stop, workers=1, profile=False, quantum=100):
     """ Yield messages generated in the given time interval from datagrepper
 
     Messages are ordered ascending by age (from oldest to newest), so that
@@ -49,21 +49,23 @@ def datagrep(start, stop, workers=1, quantum=100):
 
     with concurrent.futures.ThreadPoolExecutor(workers) as executor:
         # Uncomment the lines of code in this block to log profiling data
-        #page = 1
-        #net_time = time.time()
+        page = 1
+        net_time = time.time()
         for response in executor.map(query, xrange(2, pages+1)):
-            #net_time = time.time() - net_time
-            #cpu_time = time.time()
+            if profile:
+                net_time = time.time() - net_time
+                cpu_time = time.time()
             yield response.json()['raw_messages']
-            #page += 1
-            #cpu_time = time.time() - cpu_time
-            #log.info("Processed page {}/{}: {}ms NET {}ms CPU".format(
-            #    page,
-            #    pages,
-            #    int(net_time * 1000),
-            #    int(cpu_time * 1000)
-            #))
-            #net_time = time.time()
+            if profile:
+                page += 1
+                cpu_time = time.time() - cpu_time
+                log.info("Processed page {}/{}: {}ms NET {}ms CPU".format(
+                    page,
+                    pages,
+                    int(net_time * 1000),
+                    int(cpu_time * 1000)
+                ))
+                net_time = time.time()
 
 
 def init_plugins(config):
