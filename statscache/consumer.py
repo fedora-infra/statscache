@@ -38,6 +38,7 @@ class StatsConsumer(fedmsg.consumers.FedmsgConsumer):
 
         # Prepare to process backlogged fedmsg traffic
         epoch = self.hub.config['statscache.consumer.epoch']
+        workers = self.hub.config['statscache.datagrepper.workers']
         session = statscache.plugins.init_model(uri)
 
         # Compute pairs of plugins and the point up to which they are accurate
@@ -72,7 +73,9 @@ class StatsConsumer(fedmsg.consumers.FedmsgConsumer):
             # Delete any partially completed rows, timestamped at start
             for plugin in self.plugins:
                 plugin.revert(start, session)
-            for messages in statscache.utils.datagrep(start, stop):
+            for messages in statscache.utils.datagrep(start,
+                                                      stop,
+                                                      workers=workers):
                 for plugin in self.plugins:
                     for message in messages:
                         plugin.process(copy.deepcopy(message))

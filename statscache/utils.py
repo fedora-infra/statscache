@@ -20,7 +20,7 @@ def find_stats_consumer(hub):
     raise ValueError('StatsConsumer not found.')
 
 
-def datagrep(start, stop, quantum=100):
+def datagrep(start, stop, workers=1, quantum=100):
     """ Yield messages generated in the given time interval from datagrepper
 
     Messages are ordered ascending by age (from oldest to newest), so that
@@ -28,7 +28,6 @@ def datagrep(start, stop, quantum=100):
     of failure. Messages are generated in collections of the given quantum at a
     time.
     """
-    MAX_WORKERS = 8
     endpoint = 'https://apps.fedoraproject.org/datagrepper/raw/'
     session = requests.Session()
     session.params = {
@@ -48,7 +47,7 @@ def datagrep(start, stop, quantum=100):
     pages = int(data['pages'])
     del data
 
-    with concurrent.futures.ThreadPoolExecutor(MAX_WORKERS) as executor:
+    with concurrent.futures.ThreadPoolExecutor(workers) as executor:
         # Uncomment the lines of code in this block to log profiling data
         #page = 1
         #net_time = time.time()
