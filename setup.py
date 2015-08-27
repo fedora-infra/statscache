@@ -12,6 +12,7 @@ requires = [
     'moksha.hub>=1.4.6',
     'fedmsg_meta_fedora_infrastructure',
     'sqlalchemy',
+    'futures',
 ]
 
 tests_require = [

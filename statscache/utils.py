@@ -1,6 +1,7 @@
 import inspect
 import pkg_resources
 import requests
+import concurrent.futures
 import time
 
 from statscache.schedule import Schedule
@@ -19,7 +20,7 @@ def find_stats_consumer(hub):
     raise ValueError('StatsConsumer not found.')
 
 
-def datagrep(start, stop, quantum=100):
+def datagrep(start, stop, workers=1, profile=False, quantum=100):
     """ Yield messages generated in the given time interval from datagrepper
 
     Messages are ordered ascending by age (from oldest to newest), so that
@@ -28,8 +29,6 @@ def datagrep(start, stop, quantum=100):
     time.
     """
     endpoint = 'https://apps.fedoraproject.org/datagrepper/raw/'
-    page = 0
-    pages = 1
     session = requests.Session()
     session.params = {
         'start': time.mktime(start.timetuple()),
@@ -37,14 +36,36 @@ def datagrep(start, stop, quantum=100):
         'rows_per_page': quantum,
     }
     if stop is not None:
-        session.params['end'] = time.mktime(stop.timetuple()),
-    while page < pages:
-        page += 1
-        response = session.get(endpoint, params={ 'page': page }).json()
-        # Correct page count, which is always necessary on the first request
-        # and possibly also when stop is None
-        pages = response['pages']
-        yield response['raw_messages']
+        session.params['end'] = time.mktime(stop.timetuple())
+    query = lambda page: session.get(endpoint, params={ 'page': page })
+
+    # Manually perform the first request in order to get the page count and
+    # (hopefully) spawn some persistent connections prior to entering the
+    # executor map.
+    data = query(1).json()
+    yield data['raw_messages']
+    pages = int(data['pages'])
+    del data
+
+    with concurrent.futures.ThreadPoolExecutor(workers) as executor:
+        # Uncomment the lines of code in this block to log profiling data
+        page = 1
+        net_time = time.time()
+        for response in executor.map(query, xrange(2, pages+1)):
+            if profile:
+                net_time = time.time() - net_time
+                cpu_time = time.time()
+            yield response.json()['raw_messages']
+            if profile:
+                page += 1
+                cpu_time = time.time() - cpu_time
+                log.info("Processed page {}/{}: {}ms NET {}ms CPU".format(
+                    page,
+                    pages,
+                    int(net_time * 1000),
+                    int(cpu_time * 1000)
+                ))
+                net_time = time.time()
 
 
 def init_plugins(config):
