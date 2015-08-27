@@ -142,8 +142,6 @@ class BasePlugin(object):
     backlog_delta = None # how far back to process backlog (None is unlimited)
     model = None
 
-    datagrepper_endpoint = 'https://apps.fedoraproject.org/datagrepper/raw/'
-
     def __init__(self, schedule, config, model=None):
         self.schedule = schedule
         self.config = config
