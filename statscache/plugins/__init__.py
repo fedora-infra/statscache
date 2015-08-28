@@ -3,12 +3,35 @@ import datetime
 
 from statscache.plugins.schedule import Schedule
 from statscache.plugins.models import BaseModel, ScalarModel,\
-									  CategorizedModel, CategorizedLogModel,\
-									  ConstrainedCategorizedLogModel
+                                      CategorizedModel, CategorizedLogModel,\
+                                      ConstrainedCategorizedLogModel
 
 
 class BasePlugin(object):
-	""" An abstract base class for plugins """
+    """ An abstract base class for plugins
+
+    At a minimum, the class attributes 'name', 'summary', and 'description'
+    must be defined, and in most cases 'model' must also. The class attributes
+    'interval' and 'backlog_delta' are optional but may be extremely useful to
+    plugins.
+
+    The 'interval' attribute may be a 'datetime.timedelta' indicating what sort
+    of time windows over which this plugin calculates statistics (e.g., daily
+    or weekly). When the statscache framework initializes the plugin, it will
+    attach an instance of 'statscache.plugins.Schedule' that is synchronized
+    with the framework-wide statistics epoch (i.e., the exact moment as of
+    which statistics are being computed) to the instance attribute 'schedule'.
+    This prevents the possibility that the plugin's first time window will
+    extend before the availability of data.
+
+    The attribute 'backlog_delta' defines the maximum amount of backlog that
+    may potentially be useful to a plugin. For instance, if a plugin is only
+    interested in messages within some rolling window (e.g., all github or
+    pagure messages received in the last seven days), *and* the plugin does not
+    expose historical data, then it would be pointless for it to sift through a
+    month's worth of data, when only the last seven days' worth would have
+    sufficed.
+    """
     __meta__ = abc.ABCMeta
 
     name = None
@@ -48,12 +71,12 @@ class BasePlugin(object):
 
     @abc.abstractmethod
     def process(self, message):
-        """ Process a message """
+        """ Process a single message, synchronously """
         pass
 
     @abc.abstractmethod
     def update(self, session):
-        """ Update the model using the database session """
+        """ Update the database model, synchronously """
         pass
 
     def latest(self, session):
