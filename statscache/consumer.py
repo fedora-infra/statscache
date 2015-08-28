@@ -1,7 +1,6 @@
 import copy
 import datetime
 
-from moksha.hub.reactor import reactor
 import fedmsg.meta
 import fedmsg.consumers
 import statscache.utils
