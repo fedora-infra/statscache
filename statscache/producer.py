@@ -28,7 +28,7 @@ class StatsProducer(moksha.hub.api.PollingProducer):
     def make_session(self):
         """ Initiate database connection """
         uri = self.hub.config['statscache.sqlalchemy.uri']
-        return statscache.plugins.init_model(uri)
+        return statscache.utils.init_model(uri)
 
     def poll(self):
         """ Commit the accumulated database updates of each plugin """

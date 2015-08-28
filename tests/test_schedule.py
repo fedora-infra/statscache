@@ -6,7 +6,7 @@ import nose.tools
 
 
 from datetime import datetime, timedelta
-from statscache.schedule import Schedule
+from statscache.api.schedule import Schedule
 
 def midnight_of(day):
     return day.replace(hour=0, minute=0, second=0, microsecond=0)

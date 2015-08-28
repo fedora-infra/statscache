@@ -6,10 +6,7 @@ import datetime
 from functools import partial
 
 import sqlalchemy as sa
-from sqlalchemy import create_engine
 from sqlalchemy.ext.declarative import declarative_base
-from sqlalchemy.orm import sessionmaker
-from sqlalchemy.orm import scoped_session
 from sqlalchemy.orm.attributes import InstrumentedAttribute
 
 
@@ -113,22 +110,6 @@ CategorizedLogModel = declarative_base(cls=CategorizedLogModelClass)
 ConstrainedCategorizedLogModel = declarative_base(
     cls=ConstrainedCategorizedLogModelClass)
 BaseModel = declarative_base(cls=BaseModelClass)
-
-
-def init_model(db_url):
-    engine = create_engine(db_url)
-
-    scopedsession = scoped_session(sessionmaker(bind=engine))
-    return scopedsession
-
-
-def create_tables(db_url):
-    engine = create_engine(db_url, echo=True)
-    ScalarModel.metadata.create_all(engine)
-    CategorizedModel.metadata.create_all(engine)
-    CategorizedLogModel.metadata.create_all(engine)
-    ConstrainedCategorizedLogModel.metadata.create_all(engine)
-    BaseModel.metadata.create_all(engine)
 
 
 class BasePlugin(object):
