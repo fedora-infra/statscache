@@ -3,8 +3,6 @@ from collections import defaultdict
 
 import moksha.hub.api
 
-import statscache.plugins
-import statscache.frequency
 import statscache.utils
 
 import logging
