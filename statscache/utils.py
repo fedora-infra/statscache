@@ -4,10 +4,8 @@ import requests
 import concurrent.futures
 import time
 
-from statscache.api.schedule import Schedule
-from statscache.api.plugins import BasePlugin, BaseModel, ScalarModel,\
-                                   CategorizedModel, CategorizedLogModel,\
-                                   ConstrainedCategorizedLogModel
+from statscache.plugins import BasePlugin, Schedule
+import statscache.plugins.models as models
 
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
@@ -115,8 +113,8 @@ def init_model(db_url):
 
 def create_tables(db_url):
     engine = create_engine(db_url, echo=True)
-    ScalarModel.metadata.create_all(engine)
-    CategorizedModel.metadata.create_all(engine)
-    CategorizedLogModel.metadata.create_all(engine)
-    ConstrainedCategorizedLogModel.metadata.create_all(engine)
-    BaseModel.metadata.create_all(engine)
+    models.ScalarModel.metadata.create_all(engine)
+    models.CategorizedModel.metadata.create_all(engine)
+    models.CategorizedLogModel.metadata.create_all(engine)
+    models.ConstrainedCategorizedLogModel.metadata.create_all(engine)
+    models.BaseModel.metadata.create_all(engine)
