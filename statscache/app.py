@@ -1,7 +1,6 @@
 import flask
 import fedmsg.config
 import statscache.utils
-import statscache.frequency
 import copy
 import json
 import urllib
