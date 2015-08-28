@@ -8,6 +8,7 @@ from statscache.plugins.models import BaseModel, ScalarModel,\
 
 
 class BasePlugin(object):
+	""" An abstract base class for plugins """
     __meta__ = abc.ABCMeta
 
     name = None
