@@ -5,6 +5,7 @@ from statscache.plugins.schedule import Schedule
 from statscache.plugins.models import BaseModel, ScalarModel,\
                                       CategorizedModel, CategorizedLogModel,\
                                       ConstrainedCategorizedLogModel
+from statscache.plugins.threads import Queue, Future, asynchronous
 
 
 class BasePlugin(object):
@@ -45,6 +46,7 @@ class BasePlugin(object):
     def __init__(self, schedule, config, model=None):
         self.schedule = schedule
         self.config = config
+        self.launched = False
         if model:
             self.model = model
 
@@ -68,6 +70,16 @@ class BasePlugin(object):
         if schedule:
             ident += '-{}'.format(schedule)
         return ident
+
+    def launch(self, session):
+        """ Launch asynchronous workers, restoring state from model if needed
+
+        This method is not guaranteed to be called before message processing
+        begins. Currently, it is invoked after backprocessing has completed.
+        The recommended usage pattern is to launch a fixed number of worker
+        threads, using the plugin thread API
+        """
+        self.launched = True
 
     @abc.abstractmethod
     def process(self, message):

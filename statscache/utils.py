@@ -103,7 +103,6 @@ def init_plugins(config):
     return plugins
 
 
-
 def init_model(db_url):
     engine = create_engine(db_url)
 
