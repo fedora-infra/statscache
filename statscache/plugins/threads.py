@@ -59,7 +59,13 @@ class Future(object):
         """
 
         def __init__(self, failure):
-            """ The semantics of this method are implementation-dependent """
+            """ Instantiate a 'Failure' exception wrapper
+
+            User code should *never* need to create one of these; instances of
+            this class are created by the threading system solely for the
+            purpose of shielding plugin code from the underlying threading
+            mechanism, which is implementation-dependent.
+            """
             self.error = failure.value
             if isinstance(failure.value, twisted.CancelledError):
                 # Hide Twisted's original exception (shouldn't matter)
@@ -67,17 +73,17 @@ class Future(object):
             self.stack = failure.frames
 
     def __init__(self,
-                 from_deferred=None,
+                 source=None,
                  on_success=None,
                  on_failure=None):
         """ Instantiate a 'Future' object
 
-        The 'from_deferred' keyword argument initializes the 'Future' to
-        encapsulate an instance of 'twisted.internet.defer.Deferred'; however,
-        note that the usage of Twisted by the statscache is considered an
-        implementation detail and subject to change.
+        The 'source' keyword argument initializes the 'Future' to encapsulate
+        an instance of the underlying threading system's representation of a
+        future. User code may not rely on the stability, behavior, or
+        type-validity of this parameter.
         """
-        self._deferred = from_deferred or twisted.Deferred()
+        self._deferred = source or twisted.Deferred()
         deferred.addCallbacks(on_success or [])
         for f in on_failure or []:
             self.on_failure(f)
@@ -119,7 +125,7 @@ class Future(object):
         'on_success' will be ignored.
         """
         return Future(
-            from_deferred=twisted.fail(error),
+            source=twisted.fail(error),
             on_failure=on_failure
         )
 
@@ -131,7 +137,7 @@ class Future(object):
         'on_failure' will be ignored.
         """
         return Future(
-            from_deferred=twisted.succeed(result),
+            source=twisted.succeed(result),
             on_success=on_success
         )
 
@@ -143,7 +149,7 @@ class Future(object):
         the computation.
         """
         return lambda *args, **kwargs: Future(
-            from_deferred=twisted.deferToThread(f, *args, **kwargs),
+            source=twisted.deferToThread(f, *args, **kwargs),
             on_success=on_success,
             on_failure=on_failure
         )
