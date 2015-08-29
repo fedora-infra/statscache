@@ -3,9 +3,10 @@ import pkg_resources
 import requests
 import concurrent.futures
 import time
+from multiprocessing import cpu_count
 
-from statscache.plugins import BasePlugin, Schedule
 import statscache.plugins.models as models
+from statscache.plugins import BasePlugin, Schedule
 
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
@@ -24,7 +25,7 @@ def find_stats_consumer(hub):
     raise ValueError('StatsConsumer not found.')
 
 
-def datagrep(start, stop, workers=1, profile=False, quantum=100):
+def datagrep(start, stop, profile=False, quantum=100):
     """ Yield messages generated in the given time interval from datagrepper
 
     Messages are ordered ascending by age (from oldest to newest), so that
@@ -51,7 +52,7 @@ def datagrep(start, stop, workers=1, profile=False, quantum=100):
     pages = int(data['pages'])
     del data
 
-    with concurrent.futures.ThreadPoolExecutor(workers) as executor:
+    with concurrent.futures.ThreadPoolExecutor(cpu_count()) as executor:
         # Uncomment the lines of code in this block to log profiling data
         page = 1
         net_time = time.time()

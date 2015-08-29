@@ -39,7 +39,6 @@ class StatsConsumer(fedmsg.consumers.FedmsgConsumer):
 
         # Read configuration values
         epoch = self.hub.config['statscache.consumer.epoch']
-        workers = self.hub.config['statscache.datagrepper.workers']
         profile = self.hub.config['statscache.datagrepper.profile']
 
         # Compute pairs of plugins and the point up to which they are accurate
@@ -76,7 +75,6 @@ class StatsConsumer(fedmsg.consumers.FedmsgConsumer):
                 plugin.revert(start, session)
             for messages in statscache.utils.datagrep(start,
                                                       stop,
-                                                      workers=workers,
                                                       profile=profile):
                 for plugin in self.plugins:
                     for message in messages:

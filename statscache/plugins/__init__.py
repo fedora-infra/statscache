@@ -1,5 +1,6 @@
 import abc
 import datetime
+from multiprocessing import cpu_count
 
 from statscache.plugins.schedule import Schedule
 from statscache.plugins.models import BaseModel, ScalarModel,\
@@ -44,6 +45,7 @@ class BasePlugin(object):
     model = None
 
     def __init__(self, schedule, config, model=None):
+        self.workers = cpu_count()
         self.schedule = schedule
         self.config = config
         self.launched = False
