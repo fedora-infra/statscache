@@ -84,7 +84,7 @@ class Future(object):
         type-validity of this parameter.
         """
         self._deferred = source or twisted.Deferred()
-        deferred.addCallbacks(on_success or [])
+        self._deferred.addCallbacks(on_success or [])
         for f in on_failure or []:
             self.on_failure(f)
 
