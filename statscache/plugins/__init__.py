@@ -144,7 +144,9 @@ class AsyncPlugin(BasePlugin):
 
         The mechanism for storage of the results of this processing for
         eventual commit by 'self.update()', is completely up to the individual
-        plugin implementation.
+        plugin implementation. An easy way to manage this is by storing model
+        instances on the queue, whose mere mutation will be reflected in the
+        next database commit.
 
         Note that this method is called in its own thread, and may therefore
         utilize blocking I/O without disrupting any other components.
