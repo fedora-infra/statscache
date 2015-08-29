@@ -45,7 +45,6 @@ class BasePlugin(object):
     model = None
 
     def __init__(self, schedule, config, model=None):
-        self.workers = cpu_count()
         self.schedule = schedule
         self.config = config
         self.launched = False
@@ -112,3 +111,47 @@ class BasePlugin(object):
     def revert(self, when, session):
         """ Revert the model change(s) made as of the given datetime """
         session.query(self.model).filter(self.model.timestamp >= when).delete()
+
+
+class AsyncPlugin(BasePlugin):
+    """ Abstract base class for plugins utilizing asynchronous workers """
+
+    __meta__ = abc.ABCMeta
+
+    def __init__(self, *args, **kwargs):
+        super(AsyncPlugin, self).__init__(*args, **kwargs)
+        self.workers = cpu_count()
+        self.queue = Queue(backlog=self.workers) # work queue
+
+    def launch(self, session):
+        def spawn(error):
+            if error is not None:
+                log.exception("error in {!r}: {!r}".format(self.ident, error))
+            worker = self.queue.dequeue()
+            worker.on_success(self.work)
+            worker.on_failure(spawn)
+
+        self.fill(session)
+
+        for _ in xrange(self.workers):
+            spawn(None)
+
+        super(AsyncPlugin, self).launch(session)
+
+    @abc.abstractmethod
+    def work(self, item):
+        """ Perform further processing on the model item, synchronously
+
+        The mechanism for storage of the results of this processing for
+        eventual commit by 'self.update()', is completely up to the individual
+        plugin implementation.
+
+        Note that this method is called in its own thread, and may therefore
+        utilize blocking I/O without disrupting any other components.
+        """
+        pass
+
+    @abc.abstractmethod
+    def fill(self, session):
+        """ Fill the work queue 'self.queue' using the initial model state """
+        pass
