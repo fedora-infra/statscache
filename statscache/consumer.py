@@ -68,8 +68,10 @@ class StatsConsumer(fedmsg.consumers.FedmsgConsumer):
         for (start, plugins) in plugins_by_age:
             self.plugins.extend(plugins) # Reinsert plugins
             (stop, _) = next(plugins_by_age_iter, (end_backlog, None))
-            log.info("consuming historical fedmsg traffic from %s up to %s"
-                % (start, stop))
+            log.info(
+                "consuming historical fedmsg traffic from {} up to {}"
+                .format(start, stop)
+            )
             # Delete any partially completed rows, timestamped at start
             for plugin in self.plugins:
                 plugin.revert(start, session)
@@ -92,8 +94,8 @@ class StatsConsumer(fedmsg.consumers.FedmsgConsumer):
         # normal operation, so the worker threads will have a good opportunity
         # to catch up.
         for plugin in self.plugins:
+            log.info("launching workers for {!r}".format(plugin.ident))
             plugin.launch(session)
-        log.info("launched plugin workers")
 
         log.debug("statscache consumer initialized")
 
