@@ -34,13 +34,13 @@ class StatsConsumer(fedmsg.consumers.FedmsgConsumer):
 
         # Create any absent database tables (were new plugins installed?)
         uri = self.hub.config['statscache.sqlalchemy.uri']
-        statscache.plugins.create_tables(uri)
+        statscache.utils.create_tables(uri)
 
         # Prepare to process backlogged fedmsg traffic
         epoch = self.hub.config['statscache.consumer.epoch']
         workers = self.hub.config['statscache.datagrepper.workers']
         profile = self.hub.config['statscache.datagrepper.profile']
-        session = statscache.plugins.init_model(uri)
+        session = statscache.utils.init_model(uri)
 
         # Compute pairs of plugins and the point up to which they are accurate
         plugins_by_age = []

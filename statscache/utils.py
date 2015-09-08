@@ -4,8 +4,12 @@ import requests
 import concurrent.futures
 import time
 
-from statscache.schedule import Schedule
-import statscache.plugins
+from statscache.plugins import BasePlugin, Schedule
+import statscache.plugins.models as models
+
+from sqlalchemy import create_engine
+from sqlalchemy.orm import sessionmaker
+from sqlalchemy.orm import scoped_session
 
 import logging
 log = logging.getLogger("fedmsg")
@@ -76,7 +80,7 @@ def init_plugins(config):
     to be a class that inherits from statscache.plugin.BasePlugin
     """
     def init_plugin(plugin_class):
-        if issubclass(plugin_class, statscache.plugins.BasePlugin):
+        if issubclass(plugin_class, BasePlugin):
             interval = plugin_class.interval
             if interval not in schedules:
                 schedules[interval] = Schedule(interval, epoch)
@@ -97,3 +101,20 @@ def init_plugins(config):
         except Exception:
             log.exception("Failed to load plugin from %r" % entry_point)
     return plugins
+
+
+
+def init_model(db_url):
+    engine = create_engine(db_url)
+
+    scopedsession = scoped_session(sessionmaker(bind=engine))
+    return scopedsession
+
+
+def create_tables(db_url):
+    engine = create_engine(db_url, echo=True)
+    models.ScalarModel.metadata.create_all(engine)
+    models.CategorizedModel.metadata.create_all(engine)
+    models.CategorizedLogModel.metadata.create_all(engine)
+    models.ConstrainedCategorizedLogModel.metadata.create_all(engine)
+    models.BaseModel.metadata.create_all(engine)

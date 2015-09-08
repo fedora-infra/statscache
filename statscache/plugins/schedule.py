@@ -2,10 +2,8 @@ import datetime
 
 
 class Schedule(object):
-    """
-    A repeating interval synchronized on an epoch, which defaults to UTC
-    midnight of the current day (when this class definiton was loaded).
-    """
+    """ A repeating interval synchronized on an epoch, which defaults to UTC
+    midnight of the day that this class definiton was loaded """
 
     # synchronize all frequencies on UTC midnight of current day
     epoch = datetime.datetime.utcnow().replace(hour=0,

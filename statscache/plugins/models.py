@@ -1,15 +1,10 @@
-import abc
 import collections
 import json
 import time
-import datetime
 from functools import partial
 
 import sqlalchemy as sa
-from sqlalchemy import create_engine
 from sqlalchemy.ext.declarative import declarative_base
-from sqlalchemy.orm import sessionmaker
-from sqlalchemy.orm import scoped_session
 from sqlalchemy.orm.attributes import InstrumentedAttribute
 
 
@@ -107,94 +102,9 @@ class ConstrainedCategorizedLogModelClass(CategorizedLogModelClass):
     category_constraint = sa.Column(sa.UnicodeText, nullable=True)
 
 
+BaseModel = declarative_base(cls=BaseModelClass)
 ScalarModel = declarative_base(cls=ScalarModelClass)
 CategorizedModel = declarative_base(cls=CategorizedModelClass)
 CategorizedLogModel = declarative_base(cls=CategorizedLogModelClass)
 ConstrainedCategorizedLogModel = declarative_base(
     cls=ConstrainedCategorizedLogModelClass)
-BaseModel = declarative_base(cls=BaseModelClass)
-
-
-def init_model(db_url):
-    engine = create_engine(db_url)
-
-    scopedsession = scoped_session(sessionmaker(bind=engine))
-    return scopedsession
-
-
-def create_tables(db_url):
-    engine = create_engine(db_url, echo=True)
-    ScalarModel.metadata.create_all(engine)
-    CategorizedModel.metadata.create_all(engine)
-    CategorizedLogModel.metadata.create_all(engine)
-    ConstrainedCategorizedLogModel.metadata.create_all(engine)
-    BaseModel.metadata.create_all(engine)
-
-
-class BasePlugin(object):
-    __meta__ = abc.ABCMeta
-
-    name = None
-    summary = None
-    description = None
-
-    interval = None # this must be either None or a datetime.timedelta instance
-    backlog_delta = None # how far back to process backlog (None is unlimited)
-    model = None
-
-    def __init__(self, schedule, config, model=None):
-        self.schedule = schedule
-        self.config = config
-        if model:
-            self.model = model
-
-        required = ['name', 'summary', 'description']
-        for attr in required:
-            if not getattr(self, attr):
-                raise ValueError("%r must define %r" % (self, attr))
-
-    @property
-    def ident(self):
-        """
-        Stringify this plugin's name to use as a (hopefully) unique identifier
-        """
-        ident = self.name.lower().replace(" ", "-")
-
-        bad = ['"', "'", '(', ')', '*', '&', '?', ',']
-        replacements = dict(zip(bad, [''] * len(bad)))
-        for a, b in replacements.items():
-            ident = ident.replace(a, b)
-        schedule = getattr(self, 'schedule', None)
-        if schedule:
-            ident += '-{}'.format(schedule)
-        return ident
-
-    @abc.abstractmethod
-    def process(self, message):
-        """ Process a message """
-        pass
-
-    @abc.abstractmethod
-    def update(self, session):
-        """ Update the model using the database session """
-        pass
-
-    def latest(self, session):
-        """ Get the datetime to which the model is up-to-date """
-        times = [
-            # This is the _actual_ latest datetime
-            getattr(session.query(self.model)\
-                    .order_by(self.model.timestamp.desc())\
-                    .first(), 
-                    'timestamp',
-                    None)
-        ]
-        if self.backlog_delta is not None:
-            # This will limit how far back to process data, if statscache has
-            # been down for longer than self.backlog_delta.
-            times.append(datetime.datetime.now() - self.backlog_delta)
-        return max(times) # choose the more recent datetime
-
-    def revert(self, when, session):
-        """ Revert the model change(s) made as of the given datetime """
-        session.query(self.model).filter(self.model.timestamp >= when).delete()

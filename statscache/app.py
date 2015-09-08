@@ -1,8 +1,6 @@
 import flask
 import fedmsg.config
-import statscache.plugins
 import statscache.utils
-import statscache.frequency
 import copy
 import json
 import urllib
@@ -20,7 +18,7 @@ plugins = {
 } # mapping of identifiers to plugin instances
 
 uri = config['statscache.sqlalchemy.uri']
-session = statscache.plugins.init_model(uri)
+session = statscache.utils.init_model(uri)
 
 
 def wants_pagination():
