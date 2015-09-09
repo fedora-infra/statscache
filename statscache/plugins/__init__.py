@@ -129,6 +129,7 @@ class AsyncPlugin(BasePlugin):
                 log.exception("error in {!r}: {!r}".format(self.ident, error))
             worker = self.queue.dequeue()
             worker.on_success(self.work)
+            worker.on_success(lambda _: spawn(None))
             worker.on_failure(spawn)
 
         self.fill(session)
