@@ -91,14 +91,15 @@ class Future(object):
 
     def on_success(self, f):
         """ Add a handler function to take the resolved value """
-        self._deferred.addCallback(f)
+        self._deferred.addCallback(lambda x: (f(x), x)[1])
 
     def on_failure(self, f):
         """ Add a handler function to take the resolved error
 
         The resolved error will be wrapped in a 'Future.Failure'.
         """
-        self._deferred.addErrback(lambda x: f(Future.Failure(x)))
+        g = Future.Failure
+        self._deferred.addErrback(lambda x: (f(g(x)), x)[1])
 
     def fire(self, result):
         """ Directly resolve this 'Future' with the given 'result' """
