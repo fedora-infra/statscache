@@ -84,7 +84,8 @@ class Future(object):
         type-validity of this parameter.
         """
         self._deferred = source or threads.Deferred()
-        self._deferred.addCallbacks(on_success or [])
+        for f in on_success or []:
+            self.on_success(f)
         for f in on_failure or []:
             self.on_failure(f)
 
