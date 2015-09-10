@@ -1,5 +1,5 @@
-import twisted.internet.defer as twisted
-import twisted.internet.threads as twisted
+import twisted.internet.defer as defer
+import twisted.internet.threads as threads
 
 
 __all__ = [
@@ -21,20 +21,20 @@ class Queue(object):
         pass
 
     def __init__(self, size=None, backlog=None):
-        self._queue = twisted.DeferredQueue(size=size, backlog=backlog)
+        self._queue = defer.DeferredQueue(size=size, backlog=backlog)
 
     def enqueue(self, value):
         """ Add an item to the queue, synchronously """
         try:
             self._queue.put(value)
-        except twisted.QueueOverflow:
+        except defer.QueueOverflow:
             raise Queue.OverflowError()
 
     def dequeue(self):
         """ Return an item from the queue, asynchronously, using a 'Future' """
         try:
             return Future(self._queue.get(), [], [])
-        except twisted.QueueUnderflow:
+        except defer.QueueUnderflow:
             raise Queue.UnderflowError()
 
 
@@ -67,7 +67,7 @@ class Future(object):
             mechanism, which is implementation-dependent.
             """
             self.error = failure.value
-            if isinstance(failure.value, twisted.CancelledError):
+            if isinstance(failure.value, threads.CancelledError):
                 # Hide Twisted's original exception (shouldn't matter)
                 self.error = Future.CancellationError() 
             self.stack = failure.frames
@@ -83,7 +83,7 @@ class Future(object):
         future. User code may not rely on the stability, behavior, or
         type-validity of this parameter.
         """
-        self._deferred = source or twisted.Deferred()
+        self._deferred = source or threads.Deferred()
         self._deferred.addCallbacks(on_success or [])
         for f in on_failure or []:
             self.on_failure(f)
@@ -103,14 +103,14 @@ class Future(object):
         """ Directly resolve this 'Future' with the given 'result' """
         try:
             self._deferred.callback(result)
-        except twisted.AlreadyCalledError:
+        except threads.AlreadyCalledError:
             raise Future.AlreadyResolvedError()
 
     def fail(self, error):
         """ Directly resolve this 'Future' with the given 'result' """
         try:
             self._deferred.errback(error)
-        except twisted.AlreadyCalledError:
+        except threads.AlreadyCalledError:
             raise Future.AlreadyResolvedError()
 
     def quit(self):
@@ -125,7 +125,7 @@ class Future(object):
         'on_success' will be ignored.
         """
         return Future(
-            source=twisted.fail(error),
+            source=threads.fail(error),
             on_failure=on_failure
         )
 
@@ -137,7 +137,7 @@ class Future(object):
         'on_failure' will be ignored.
         """
         return Future(
-            source=twisted.succeed(result),
+            source=threads.succeed(result),
             on_success=on_success
         )
 
@@ -149,7 +149,7 @@ class Future(object):
         the computation.
         """
         return lambda *args, **kwargs: Future(
-            source=twisted.deferToThread(f, *args, **kwargs),
+            source=threads.deferToThread(f, *args, **kwargs),
             on_success=on_success,
             on_failure=on_failure
         )
