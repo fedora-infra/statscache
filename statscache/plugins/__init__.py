@@ -11,6 +11,20 @@ from statscache.plugins.threads import Queue, Future, asynchronous
 import logging
 log = logging.getLogger("fedmsg")
 
+__all__ = [
+    'Schedule',
+    'BaseModel',
+    'ScalarModel',
+    'CategorizedModel',
+    'CategorizedLogModel',
+    'ConstrainedCategorizedLogModel',
+    'Queue',
+    'Future',
+    'asynchronous',
+    'BasePlugin',
+    'AsyncPlugin',
+]
+
 
 class BasePlugin(object):
     """ An abstract base class for plugins
