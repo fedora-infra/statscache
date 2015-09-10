@@ -8,6 +8,9 @@ from statscache.plugins.models import BaseModel, ScalarModel,\
                                       ConstrainedCategorizedLogModel
 from statscache.plugins.threads import Queue, Future, asynchronous
 
+import logging
+log = logging.getLogger("fedmsg")
+
 
 class BasePlugin(object):
     """ An abstract base class for plugins
