@@ -98,7 +98,7 @@ class Future(object):
 
         The resolved error will be wrapped in a 'Future.Failure'.
         """
-        self._deferred.addErrback(lambda x: f(Failure(x)))
+        self._deferred.addErrback(lambda x: f(Future.Failure(x)))
 
     def fire(self, result):
         """ Directly resolve this 'Future' with the given 'result' """
