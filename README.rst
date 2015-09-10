@@ -39,7 +39,7 @@ daemon.  You should see lots of fun stats being stored in stdout.  To launch
 the web interface (which currently only serves JSON and CSV responses), run
 ``python statscache/app.py`` in the same directory.  You can now view a list of
 the available plugins in JSON by visiting
-`localhost:5000/api/ <localhost:5000/api/>`_, and you can retrieve the
+`localhost:5000/api/ <http://localhost:5000/api/>`_, and you can retrieve the
 statistics recorded by a given plugin by appending its identifier to that same
 URL.
 
