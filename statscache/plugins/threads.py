@@ -67,7 +67,7 @@ class Future(object):
             mechanism, which is implementation-dependent.
             """
             self.error = failure.value
-            if isinstance(failure.value, threads.CancelledError):
+            if isinstance(failure.value, defer.CancelledError):
                 # Hide Twisted's original exception (shouldn't matter)
                 self.error = Future.CancellationError() 
             self.stack = failure.frames
