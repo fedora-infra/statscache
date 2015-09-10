@@ -124,9 +124,9 @@ class AsyncPlugin(BasePlugin):
         self.queue = Queue(backlog=self.workers) # work queue
 
     def launch(self, session):
-        def spawn(error):
-            if error is not None:
-                log.exception("error in {!r}: {!r}".format(self.ident, error))
+        def spawn(e):
+            if e is not None:
+                log.exception("error in '{}': '{}'".format(self.ident, e.error))
             worker = self.queue.dequeue()
             worker.on_success(self.work)
             worker.on_success(lambda _: spawn(None))
