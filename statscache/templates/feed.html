@@ -36,22 +36,22 @@
 //		var stop = Date.parse({{ '????? '}});
 //		var start = Date.parse({{ '?????' }});
 		function render(data) {
-			var headers = Object.keys(data[0]);
-			headers.splice(headers.indexOf('timestamp'), 1);
-			headers.unshift('timestamp');
-			$('thead').append("<tr>" + headers.map(function (s) {
+			var keys = Object.keys(data[0]);
+			keys.splice(keys.indexOf('timestamp'), 1);
+			keys.unshift('timestamp');
+			$('thead').append("<tr>" + keys.map(function (s) {
 				return '<th>' + s + '</th>';
 			}).join() + "</tr>");
-			template = "<tr>" + headers.map(function (s) {
+			template = "<tr>" + keys.map(function (s) {
 				return '<td>{' + s + '}</td>';
 			}).join() + "</tr>";
-			data.map(function (row) {
+			data.forEach(function (row) {
 				t = new Date();
 				t.setTime(row.timestamp*1000);
 				row.timestamp = t.toUTCString();
-				for (var key in row) {
+				keys.forEach(function (key) {
 					row[key] = String(row[key]).htmlEscape();
-				}
+				});
 				$('tbody').append(template.format(row));
 			});
 			/* TODO: render a configurable graph */
