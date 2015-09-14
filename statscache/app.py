@@ -199,7 +199,6 @@ def resource_not_found(error):
     if get_mimetype().endswith('html'):
         return flask.render_template(
             'error.html',
-            ident=ident,
             message=message,
             status=404
         )
@@ -220,7 +219,6 @@ def unacceptable_content(error):
     if get_mimetype().endswith('html'):
         return flask.render_template(
             'error.html',
-            ident=ident,
             message=message,
             status=406
         )
