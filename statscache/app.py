@@ -190,6 +190,12 @@ def plugin_layout(ident):
     return jsonp(json.dumps(plugin.layout))
 
 
+@app.route('/web/reference')
+def reference():
+    """ Simple guide to using web and REST interfaces """
+    return flask.render_template('reference.html')
+
+
 @app.errorhandler(404)
 def resource_not_found(error):
     message = "No such resource"

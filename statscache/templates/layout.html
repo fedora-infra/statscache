@@ -22,7 +22,9 @@
         <header class="page-header row">
             <div class="masthead">
                 <ul class="nav nav-pills pull-right">
-                    <!-- <li{% if request.endpoint == 'reference' %} class="active"{% endif %}><a href="{# url_for('reference') #}">Reference</a></li> -->
+                    <li{% if request.endpoint == 'reference' %} class="active"{% endif %}>
+                        <a href="{{ url_for('reference') }}">Reference</a>
+                    </li>
                     <!-- <li{% if request.endpoint == 'widget' %} class="active"{% endif %}><a href="{# url_for('widget') #}">Embedding</a></li> -->
                     <li><a href="https://github.com/fedora-infra/statscache">Source</a></li>
                     <li><a href="https://github.com/fedora-infra/statscache/issues">Issues</a></li>
