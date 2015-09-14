@@ -17,6 +17,20 @@
 		    );
 		};
 
+		String.prototype.htmlEscape = function () {
+			var map = {
+				"&": "&amp;",
+				"<": "&lt;",
+				">": "&gt;",
+				'"': '&quot;',
+				"'": '&#39;',
+				"/": '&#x2F;'
+			};
+			return this.replace(/[&<>"'\/]/g, function (symbol) {
+				return map[symbol];
+			});
+		}
+
 		var feed = "{{ request.base_url }}";
 		/* TODO: variable time interval */
 //		var stop = Date.parse({{ '????? '}});
@@ -37,7 +51,10 @@
 				t = new Date();
 				t.setTime(row.timestamp*1000);
 				row.timestamp = t.toUTCString();
-				$('tbody').append(template.format(row)); /* FIXME: escape string */
+				for (var key in row) {
+					row[key] = String(row[key]).htmlEscape();
+				}
+				$('tbody').append(template.format(row));
 			});
 			/* TODO: render a configurable graph */
 		}
