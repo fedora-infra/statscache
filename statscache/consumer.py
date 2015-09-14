@@ -35,12 +35,11 @@ class StatsConsumer(fedmsg.consumers.FedmsgConsumer):
         # Create any absent database tables (were new plugins installed?)
         uri = self.hub.config['statscache.sqlalchemy.uri']
         statscache.utils.create_tables(uri)
-
-        # Prepare to process backlogged fedmsg traffic
-        epoch = self.hub.config['statscache.consumer.epoch']
-        workers = self.hub.config['statscache.datagrepper.workers']
-        profile = self.hub.config['statscache.datagrepper.profile']
         session = statscache.utils.init_model(uri)
+
+        # Read configuration values
+        epoch = self.hub.config['statscache.consumer.epoch']
+        profile = self.hub.config['statscache.datagrepper.profile']
 
         # Compute pairs of plugins and the point up to which they are accurate
         plugins_by_age = []
@@ -69,19 +68,35 @@ class StatsConsumer(fedmsg.consumers.FedmsgConsumer):
         for (start, plugins) in plugins_by_age:
             self.plugins.extend(plugins) # Reinsert plugins
             (stop, _) = next(plugins_by_age_iter, (end_backlog, None))
-            log.info("consuming historical fedmsg traffic from %s up to %s"
-                % (start, stop))
+            log.info(
+                "consuming historical fedmsg traffic from {} up to {}"
+                .format(start, stop)
+            )
             # Delete any partially completed rows, timestamped at start
             for plugin in self.plugins:
                 plugin.revert(start, session)
             for messages in statscache.utils.datagrep(start,
                                                       stop,
-                                                      workers=workers,
                                                       profile=profile):
                 for plugin in self.plugins:
                     for message in messages:
                         plugin.process(copy.deepcopy(message))
                     plugin.update(session)
+
+        # Launch worker threads
+        # Note that although these are intentionally not called until after
+        # backprocessing, the reactor isn't even run until some time after this
+        # method returns. Regardless, it is a desired behavior to not start the
+        # worker threads until after backprocessing, as that phase is
+        # computationally intensive. If the worker threads were running during
+        # backprocessing, then there would almost certainly be high processor
+        # (read: GIL) contention. Luckily, statscache tends to sit idle during
+        # normal operation, so the worker threads will have a good opportunity
+        # to catch up.
+        for plugin in self.plugins:
+            log.info("launching workers for {!r}".format(plugin.ident))
+            plugin.launch(session)
+
         log.debug("statscache consumer initialized")
 
     def consume(self, raw_msg):

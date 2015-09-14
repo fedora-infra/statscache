@@ -4,7 +4,6 @@ hostname = socket.gethostname().split('.')[0]
 
 
 config = {
-    "statscache.datagrepper.workers": 8,
     "statscache.datagrepper.profile": False,
     # Consumer stuff
     "statscache.consumer.enabled": True,
