@@ -33,7 +33,7 @@
 			template = "<tr>" + headers.map(function (s) {
 				return '<td>{' + s + '}</td>';
 			}).join() + "</tr>";
-			_.each(data, function (row) {
+			data.map(function (row) {
 				t = new Date();
 				t.setTime(row.timestamp*1000);
 				row.timestamp = t.toUTCString();
