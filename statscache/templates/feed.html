@@ -36,8 +36,6 @@
 //		var stop = Date.parse({{ '????? '}});
 //		var start = Date.parse({{ '?????' }});
 		function render(data) {
-			/* sort data from newest to oldest; TODO: implement in server */
-			data.sort(function (x, y) { return x.timestamp - y.timestamp; });
 			var headers = Object.keys(data[0]);
 			headers.splice(headers.indexOf('timestamp'), 1);
 			headers.unshift('timestamp');
