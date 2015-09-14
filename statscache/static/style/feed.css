@@ -1,3 +1,12 @@
 td, th {
 	width: 16%;
 }
+
+th {
+	font-size: 11pt;
+}
+
+td {
+	font-family: Menlo,Monaco,Consolas,"Courier New",monospace;
+	font-size: 10pt;
+}

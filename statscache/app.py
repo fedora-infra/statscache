@@ -173,7 +173,7 @@ def plugin_model(ident):
             headers=headers
         )
     elif mimetype.endswith('html'):
-        return flask.render_template('feed.html', data=model.to_json(items))
+        return flask.render_template('feed.html', data=model.to_json(items), plugin=plugin)
     else:
         flask.abort(406)
 
