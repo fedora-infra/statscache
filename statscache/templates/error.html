@@ -2,12 +2,6 @@
 {% block title %}error{% endblock %}
 {% block head %}
 	<meta name="description" content="{{ message }}">
-	<meta name="author" content="Nathaniel Yazdani">
 {% endblock %}
-{% block body %}
-	<header class="page-header row">
-		<div class="col-md-6">
-			<h1>error<small>    {{ message.lower() }}</small></h1>
-		</div>
-	</header>
-{% endblock %}
+{% block byline %}error{% endblock %}
+{% block body %}<p>{{ message.lower() }}</p>{% endblock %}

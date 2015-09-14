@@ -1,8 +1,8 @@
 {% extends "layout.html" %}
-{% block title %}{{ request.view_args['ident'] }} feed{% endblock %}
+{% block title %}{{ plugin.name.lower() }}{% endblock %}
+{% block byline %}{{ plugin.name.lower() }}{% endblock %}
 {% block head %}
 	<meta name="description" content="View of statscache feed">
-	<meta name="author" content="Nathaniel Yazdani">
 	<link rel="stylesheet"
 		  type="text/css"
 		  href="{{ url_for('static', filename='style/feed.css') }}" >
@@ -48,16 +48,9 @@
 	</script>
 {% endblock %}
 {% block body %}
-	<header class="page-header row">
-		<div class="col-md-6">
-			<h1>{{ request.view_args['ident'] }}  <small>feed</small></h1>
-		</div>
-	</header>
-	<main class="row">
-		<table class="table">
-			<thead></thead>
-			<tbody></tbody>
-			<tfoot></tfoot>
-		</table>
-	</main>
+	<table class="table">
+		<thead></thead>
+		<tbody></tbody>
+		<tfoot></tfoot>
+	</table>
 {% endblock %}

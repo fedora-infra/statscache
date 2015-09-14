@@ -1,28 +1,46 @@
 <!doctype html>
 <html lang="en">
-	<head>
-		<meta charset="utf-8">
-		<meta http-equiv="X-UA-Compatible" content="IE=edge">
-		<script type="text/javascript"
-				src="{{ url_for('static', filename='script/jquery-2.1.4.min.js') }}">
-		</script>
-		<script type="text/javascript"
-				src="{{ url_for('static', filename='script/underscore-min.js') }}">
-		</script>
-		<link rel="stylesheet"
-			  type="text/css"
-			  href="{{ url_for('static', filename='style/bootstrap-theme.min.css') }}">
-		</link>
-		<link rel="stylesheet"
-			  type="text/css"
-			  href="{{ url_for('static', filename='style/bootstrap.min.css') }}">
-		</link>
-		<title>{% block title %}{% endblock %} - statscache</title>
-		{% block head %}{% endblock %}
-	</head>
-	<body>
-		<div class="container">
-			{% block body %}{% endblock %}
-		</div>
-	</body>
+    <head>
+        <meta charset="utf-8">
+        <meta http-equiv="X-UA-Compatible" content="IE=edge">
+        <script type="text/javascript"
+                src="{{ url_for('static', filename='script/jquery-2.1.4.min.js') }}">
+        </script>
+        <script type="text/javascript"
+                src="{{ url_for('static', filename='script/underscore-min.js') }}">
+        </script>
+        <link rel="stylesheet"
+              type="text/css"
+              href="{{ url_for('static', filename='style/bootstrap-theme.min.css') }}">
+        </link>
+        <link rel="stylesheet"
+              type="text/css"
+              href="{{ url_for('static', filename='style/bootstrap.min.css') }}">
+        </link>
+        <meta name="author" content="Nathaniel Yazdani">
+        <title>statscache {% block title %}{% endblock %}</title>
+        {% block head %}{% endblock %}
+    </head>
+    <body class="container" {% if request.endpoint != 'dashboard' %}style="max-width: 700pt;"{% endif %}>
+        <header class="page-header row">
+            <div class="masthead">
+                <ul class="nav nav-pills pull-right">
+                    <!-- <li{% if request.endpoint == 'reference' %} class="active"{% endif %}><a href="{# url_for('reference') #}">Reference</a></li> -->
+                    <!-- <li{% if request.endpoint == 'widget' %} class="active"{% endif %}><a href="{# url_for('widget') #}">Embedding</a></li> -->
+                    <li><a href="https://github.com/fedora-infra/statscache">Source</a></li>
+                    <li><a href="https://github.com/fedora-infra/statscache/issues">Issues</a></li>
+                </ul>
+                <h1 class="muted">statscache <small>{% block byline %}{% endblock %}</small></h1>
+            </div>
+            {% block header %}{% endblock %}
+        </header>
+        <main>
+            {% block body %}{% endblock %}
+        </main>
+        <footer class="page-footer row">
+            <hr></hr>
+            {% block footer %}{% endblock %}
+            <p class="text-muted">Copyright &copy; 2015, Fedora Project and its contributors under the GPLv2+</p>
+        </footer>
+    </body>
 </html>
