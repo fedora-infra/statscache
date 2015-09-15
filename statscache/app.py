@@ -190,6 +190,12 @@ def plugin_layout(ident):
     return jsonp(json.dumps(plugin.layout))
 
 
+@app.route('/web/getting-started')
+def getting_started():
+    """ Getting started page """
+    return flask.render_template('getting_started.html')
+
+
 @app.route('/web/reference')
 def reference():
     """ Simple guide to using web and REST interfaces """
