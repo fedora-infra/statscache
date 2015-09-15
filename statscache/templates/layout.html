@@ -6,6 +6,9 @@
         <script type="text/javascript"
                 src="{{ url_for('static', filename='script/jquery-2.1.4.min.js') }}">
         </script>
+        <script type="text/javascript"
+                src="{{ url_for('static', filename='script/bootstrap.min.js') }}">
+        </script>
         <link rel="stylesheet"
               type="text/css"
               href="{{ url_for('static', filename='style/bootstrap-theme.min.css') }}">
@@ -43,7 +46,7 @@
             {% block body %}{% endblock %}
         </main>
         <footer class="page-footer row">
-            <hr></hr>
+            <hr/>
             {% block footer %}{% endblock %}
             <p class="text-muted">Copyright &copy; 2015, Fedora Project and its contributors under the GPLv2+</p>
         </footer>
