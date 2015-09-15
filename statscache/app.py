@@ -190,6 +190,13 @@ def plugin_layout(ident):
     return jsonp(json.dumps(plugin.layout))
 
 
+@app.route('/')
+@app.route('/web/')
+def home_redirect():
+    """ Redirect users to the 'home' web page """
+    return flask.redirect(flask.url_for('getting_started'))
+
+
 @app.route('/web/getting-started')
 def getting_started():
     """ Getting started page """
