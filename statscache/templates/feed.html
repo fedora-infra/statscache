@@ -31,20 +31,29 @@
 			});
 		}
 
-		var feed = "{{ request.base_url }}";
+		var initialized = false;
+		var feed = "{{ url_for('plugin_model', ident=plugin.ident) }}";
+		var rows_per_page = 100;
+		var page = 1;
+		var keys;
+		var template;
 		/* TODO: variable time interval */
 //		var stop = Date.parse({{ '????? '}});
 //		var start = Date.parse({{ '?????' }});
 		function render(data) {
-			var keys = Object.keys(data[0]);
-			keys.splice(keys.indexOf('timestamp'), 1);
-			keys.unshift('timestamp');
-			$('thead').append("<tr>" + keys.map(function (s) {
-				return '<th>' + s + '</th>';
-			}).join() + "</tr>");
-			template = "<tr>" + keys.map(function (s) {
-				return '<td>{' + s + '}</td>';
-			}).join() + "</tr>";
+			if (!initialized) {
+				/* execute this once for the first AJAX response */
+				keys = Object.keys(data[0]);
+				keys.splice(keys.indexOf('timestamp'), 1);
+				keys.unshift('timestamp');
+				$('thead').html("<tr>" + keys.map(function (s) {
+					return '<th>' + s + '</th>';
+				}).join("") + "</tr>");
+				template = "<tr>" + keys.map(function (s) {
+					return '<td>{' + s + '}</td>';
+				}).join("") + "</tr>";
+				initialized = true;
+			}
 			data.forEach(function (row) {
 				t = new Date();
 				t.setTime(row.timestamp*1000);
@@ -57,9 +66,30 @@
 			/* TODO: render a configurable graph */
 		}
 
-		$(document).ready(function () {
-			render({{ data|safe }});
-		});
+		function request() {
+			$('img#spinwheel').show();
+			$.ajax(
+				feed + "?" + $.param(
+					{
+						'rows_per_page': rows_per_page,
+						'page': page
+					}
+				),
+				{
+					'dataType': 'json',
+					'complete': function (request, status) {
+						$('img#spinwheel').hide();
+					},
+					'error': function (request, status, error) {
+						console.log("error: " + status);
+					},
+					'success': function (response, status, request) {
+						render(response);
+					}
+				}
+			);
+		}
+		request();
 	</script>
 {% endblock %}
 {% block body %}
@@ -72,4 +102,9 @@
 		<tbody></tbody>
 		<tfoot></tfoot>
 	</table>
+	<p id="error"></p>
+	<img id="spinwheel"
+		 src="{{ url_for('static', filename='image/loading.gif') }}"
+		 class="img-responsive center-block" />
+
 {% endblock %}

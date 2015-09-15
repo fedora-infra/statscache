@@ -10,3 +10,7 @@ td {
 	font-family: Menlo,Monaco,Consolas,"Courier New",monospace;
 	font-size: 9pt;
 }
+
+img#spinwheel {
+	width: 40pt;
+}
