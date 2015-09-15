@@ -9,6 +9,10 @@
         </script>
 
         <script type="text/javascript"
+                src="{{ url_for('static', filename='script/moment.min.js') }}">
+        </script>
+
+        <script type="text/javascript"
                 src="{{ url_for('static', filename='script/bootstrap.min.js') }}">
         </script>
         <script type="text/javascript"
@@ -25,10 +29,6 @@
         </script>
         <script type="text/javascript"
                 src="{{ url_for('static', filename='script/bootstrap-datetimepicker.min.js') }}">
-        </script>
-
-        <script type="text/javascript"
-                src="{{ url_for('static', filename='script/moment.min.js') }}">
         </script>
 
         <link rel="stylesheet"
@@ -50,6 +50,7 @@
             src: url("{{ url_for('static', filename='font/glyphicons-halflings-regular.woff') }}");
         }
         </style>
+
         <meta name="author" content="Nathaniel Yazdani">
         <title>statscache {% block title %}{% endblock %}</title>
         {% block head %}{% endblock %}
