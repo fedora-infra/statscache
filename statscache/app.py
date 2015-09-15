@@ -203,6 +203,12 @@ def getting_started():
     return flask.render_template('getting_started.html')
 
 
+@app.route('/web/dashboard')
+def dashboard():
+    """ Overview of recent model changes """
+    return flask.render_template('dashboard.html')
+
+
 @app.route('/web/reference')
 def reference():
     """ Simple guide to using web and REST interfaces """
