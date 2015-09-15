@@ -1,12 +1,10 @@
-td, th {
+table#stats-table th {
 	width: 16%;
-}
-
-th {
 	font-size: 11pt;
 }
 
-td {
+table#stats-table td {
+	width: 16%;
 	font-family: Menlo,Monaco,Consolas,"Courier New",monospace;
 	font-size: 9pt;
 }
