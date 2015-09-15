@@ -1,8 +1,8 @@
 {% extends "layout.html" %}
 {% block title %}{{ plugin.name.lower() }}{% endblock %}
-{% block byline %}{{ plugin.name.lower() }}{% endblock %}
+{% block byline %}direct feed{% endblock %}
 {% block head %}
-	<meta name="description" content="View of statscache feed">
+	<meta name="description" content="Raw feed of '{{ plugin.ident }}' model">
 	<link rel="stylesheet"
 		  type="text/css"
 		  href="{{ url_for('static', filename='style/feed.css') }}" >
@@ -63,7 +63,10 @@
 	</script>
 {% endblock %}
 {% block body %}
-	<p><label>Description: </label>{{ plugin.description }}</p>
+	<div class="lead">
+		<h1>{{ plugin.name }}</h1>
+		<p>{{ plugin.description }}</p>
+	</div>
 	<table class="table">
 		<thead></thead>
 		<tbody></tbody>
