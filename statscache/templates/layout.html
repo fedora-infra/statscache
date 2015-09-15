@@ -17,6 +17,12 @@
               type="text/css"
               href="{{ url_for('static', filename='style/bootstrap.min.css') }}">
         </link>
+        <style type="text/css">
+        @font-face {
+            font-family: "Glyphicons Halflings";
+            src: url("{{ url_for('static', filename='font/glyphicons-halflings-regular.woff') }}");
+        }
+        </style>
         <meta name="author" content="Nathaniel Yazdani">
         <title>statscache {% block title %}{% endblock %}</title>
         {% block head %}{% endblock %}
