@@ -32,12 +32,14 @@
 		}
 
 		var initialized = false;
+		var loading = false;
+		var loadingError =
+			"An error occurred, and the content could not be loaded";
 		var feed = "{{ url_for('plugin_model', ident=plugin.ident) }}";
 		var rows_per_page = 100;
 		var page = 1;
 		var keys;
 		var template;
-		/* TODO: variable time interval */
 //		var stop = Date.parse({{ '????? '}});
 //		var start = Date.parse({{ '?????' }});
 		function render(data) {
@@ -67,7 +69,8 @@
 		}
 
 		function request() {
-			$('img#spinwheel').show();
+			$('#loading').show();
+			loading = true;
 			$.ajax(
 				feed + "?" + $.param(
 					{
@@ -78,13 +81,16 @@
 				{
 					'dataType': 'json',
 					'complete': function (request, status) {
-						$('img#spinwheel').hide();
+						loading = false;
 					},
 					'error': function (request, status, error) {
 						console.log("error: " + status);
+						$('img#spinwheel').hide();
+						$('#loading > label').text(loadingError);
 					},
 					'success': function (response, status, request) {
 						render(response);
+						$('#loading').hide();
 					}
 				}
 			);
@@ -103,8 +109,10 @@
 		<tfoot></tfoot>
 	</table>
 	<p id="error"></p>
-	<img id="spinwheel"
-		 src="{{ url_for('static', filename='image/loading.gif') }}"
-		 class="img-responsive center-block" />
-
+	<div id="loading" class="center-block">
+		<img id="spinwheel"
+			 src="{{ url_for('static', filename='image/loading.gif') }}"
+			 class="img-responsive" />
+		<label>loading...</label>
+	</div>
 {% endblock %}

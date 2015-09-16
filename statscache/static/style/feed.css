@@ -9,6 +9,16 @@ table#stats-table td {
 	font-size: 9pt;
 }
 
-img#spinwheel {
+div#loading {
+	text-align: center;
+}
+
+div#loading > img#spinwheel {
+	display: inline-block;
 	width: 40pt;
+}
+
+div#loading > label {
+	display: inline-block;
+	font-size: larger;
 }
