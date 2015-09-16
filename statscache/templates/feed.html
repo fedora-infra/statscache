@@ -40,8 +40,7 @@
 		var page = 1;
 		var keys;
 		var template;
-//		var stop = Date.parse({{ '????? '}});
-//		var start = Date.parse({{ '?????' }});
+
 		function render(data) {
 			if (!initialized) {
 				/* execute this once for the first AJAX response */
@@ -49,11 +48,11 @@
 				keys.splice(keys.indexOf('timestamp'), 1);
 				keys.unshift('timestamp');
 				$('thead').html("<tr>" + keys.map(function (s) {
-					return '<th>' + s + '</th>';
-				}).join("") + "</tr>");
+					return '<th>' + s.htmlEscape() + '</th>';
+				}).join() + "</tr>");
 				template = "<tr>" + keys.map(function (s) {
 					return '<td>{' + s + '}</td>';
-				}).join("") + "</tr>";
+				}).join() + "</tr>";
 				initialized = true;
 			}
 			data.forEach(function (row) {
