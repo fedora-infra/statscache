@@ -112,6 +112,13 @@
 
 			$('.datetimepicker').datetimepicker();
 
+			/*
+			{#
+			 # Normalize these to the nearest valid minute to prevent the
+			 # datetime-picker's script from doing so, which would cause an
+			 # unnecessary (and annoying) refresh right away.
+			 #}
+			 */
 			epoch = moment("{{ epoch + 60 - (epoch % 60) }}", "X");
 			now = moment("{{ now - (now % 60) }}", "X");
 
