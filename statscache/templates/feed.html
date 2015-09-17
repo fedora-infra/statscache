@@ -31,7 +31,6 @@
 			});
 		}
 
-		var initialized = false;
 		var pending = null; /* current pending request */
 		var loadingError =
 			"An error occurred, and the content could not be loaded";
@@ -42,7 +41,7 @@
 		var template;
 
 		function render(data) {
-			if (!initialized) {
+			if (page == 1) {
 				/* execute this once for the first AJAX response */
 				keys = Object.keys(data[0]);
 				keys.splice(keys.indexOf('timestamp'), 1);
@@ -53,7 +52,6 @@
 				template = "<tr>" + keys.map(function (s) {
 					return '<td>{' + s + '}</td>';
 				}).join() + "</tr>";
-				initialized = true;
 			}
 			data.forEach(function (row) {
 				t = new Date();
@@ -134,7 +132,6 @@
 				}
 				/* clear previously loaded content and state,... */
 				$('thead.stats,tbody.stats,tfoot.stats').html("");
-				initialized = false;
 				page = 1;
 				/* and re-load with the new start or stop datetime */
 				request();
