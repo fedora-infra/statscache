@@ -173,7 +173,12 @@ def plugin_model(ident):
             headers=headers
         )
     elif mimetype.endswith('html'):
-        return flask.render_template('feed.html', plugin=plugin)
+        return flask.render_template(
+            'feed.html',
+            plugin=plugin,
+            now=time.time(),
+            epoch=time.mktime(config['statscache.consumer.epoch'].timetuple())
+        )
     else:
         flask.abort(406)
 

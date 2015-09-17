@@ -1,9 +1,9 @@
-table#stats-table th {
+thead.stats th {
 	width: 16%;
 	font-size: 11pt;
 }
 
-table#stats-table td {
+tbody.stats td {
 	width: 16%;
 	font-family: Menlo,Monaco,Consolas,"Courier New",monospace;
 	font-size: 9pt;
@@ -21,4 +21,20 @@ div#loading > img#spinwheel {
 div#loading > label {
 	display: inline-block;
 	font-size: larger;
+}
+
+div#config > * {
+	float: left;
+	padding: 0;
+	margin: 2pt;
+	width: auto;
+	display: inline-block;
+}
+
+div#config > label {
+	padding-top: 5pt;
+}
+
+div#config > div.col-sm-6 {
+	width: 156pt;
 }
