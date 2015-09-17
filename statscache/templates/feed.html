@@ -68,8 +68,9 @@
 		}
 
 		function request() {
-			if (pending)
+			if (pending) {
 				return; /* don't start duplicate requests */
+			}
 			$('#loading').show();
 			pending = $.ajax(
 				feed + "?" + $.param(
@@ -88,12 +89,13 @@
 					},
 					'error': function (request, status, error) {
 						console.log("error: " + status);
+						$('#loading').off('appear', request);
 						$('img#spinwheel').hide();
 						$('#loading > label').text(loadingError);
 					},
 					'success': function (response, status, request) {
 						render(response);
-						$('#loading').hide();
+						++page;
 					}
 				}
 			);
@@ -139,7 +141,9 @@
 			});
 
 			/* load initial (default) content */
-			request();
+			$('#loading').on('appear', request);
+			$('#loading').appear();
+			$('#loading').trigger('appear');
 		});
 	</script>
 {% endblock %}
