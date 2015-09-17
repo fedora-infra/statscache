@@ -68,6 +68,8 @@
 		}
 
 		function request() {
+			if (pending)
+				return; /* don't start duplicate requests */
 			$('#loading').show();
 			pending = $.ajax(
 				feed + "?" + $.param(
