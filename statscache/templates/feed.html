@@ -100,14 +100,28 @@
 			);
 		}
 
+		function reload() {
+			/* abort any pending request,... */
+			if (pending) {
+				pending.abort();
+			}
+			/* clear previously loaded content and state,... */
+			$('thead.stats,tbody.stats,tfoot.stats').html("");
+			page = 1;
+			/* and re-load with the new start or stop datetime */
+			request();
+		}
+
 		$(function () {
 			$('#chose-ascending').on('click', function (e) {
 				$('#ordering-menu').text("ascending");
 				order = 'asc';
+				reload();
 			});
 			$('#chose-descending').on('click', function (e) {
 				order = 'desc';
 				$('#ordering-menu').text("descending");
+				reload();
 			});
 
 			$('.datetimepicker').datetimepicker();
@@ -142,17 +156,7 @@
 				);
 			});
 
-			$('.datetimepicker').on('dp.change', function (e) {
-				/* abort any pending request,... */
-				if (pending) {
-					pending.abort();
-				}
-				/* clear previously loaded content and state,... */
-				$('thead.stats,tbody.stats,tfoot.stats').html("");
-				page = 1;
-				/* and re-load with the new start or stop datetime */
-				request();
-			});
+			$('.datetimepicker').on('dp.change', reload);
 
 			/* load initial (default) content */
 			$('#loading').on('appear', request);
