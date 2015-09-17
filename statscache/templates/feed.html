@@ -114,11 +114,17 @@
 
 		$(function () {
 			$('#chose-ascending').on('click', function (e) {
+				if (order == 'asc') {
+					return; /* don't unnecessarily reload everything */
+				}
 				$('#ordering-menu').text("ascending");
 				order = 'asc';
 				reload();
 			});
 			$('#chose-descending').on('click', function (e) {
+				if (order == 'desc') {
+					return; /* don't unnecessarily reload everything */
+				}
 				order = 'desc';
 				$('#ordering-menu').text("descending");
 				reload();
