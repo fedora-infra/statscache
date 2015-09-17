@@ -37,6 +37,7 @@
 		var feed = "{{ url_for('plugin_model', ident=plugin.ident) }}";
 		var rows_per_page = 100;
 		var page = 1;
+		var order = 'desc';
 		var keys;
 		var template;
 
@@ -77,7 +78,7 @@
 						'page': page,
 						'start': $('#start-datetime').data('DateTimePicker').date().format('X'),
 						'stop': $('#stop-datetime').data('DateTimePicker').date().format('X'),
-						'order': 'desc',
+						'order': order,
 					}
 				),
 				{
@@ -100,6 +101,15 @@
 		}
 
 		$(function () {
+			$('#chose-ascending').on('click', function (e) {
+				$('#ordering-menu').text("ascending");
+				order = 'asc';
+			});
+			$('#chose-descending').on('click', function (e) {
+				order = 'desc';
+				$('#ordering-menu').text("descending");
+			});
+
 			$('.datetimepicker').datetimepicker();
 
 			epoch = moment("{{ epoch + 60 - (epoch % 60) }}", "X");
@@ -172,7 +182,20 @@
 				</div>
 			</div>
 		</div>
-		<label>.</label>
+		<label>in</label>
+		<div class="dropdown">
+			<button class="btn btn-default dropdown-toggle" type="button"
+					data-toggle="dropdown" aria-haspopup="true"
+					aria-expanded="true" id="ordering-menu">
+				descending
+				<span class="caret"></span>
+			</button>
+			<ul class="dropdown-menu" aria-labelledby="ordering-menu">
+				<li><a id="chose-ascending" href="#">ascending</a></li>
+				<li><a id="chose-descending" href="#">descending</a></li>
+			</ul>
+		</div>
+		<label>order.</label>
 	</div>
 	<table class="stats table">
 		<thead class="stats"></thead>
