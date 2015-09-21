@@ -1,8 +1,188 @@
 {% extends "layout.html" %}
 {% block title %}getting started{% endblock %}
 {% block head %}
-	<meta name="description" content="Introduction to statscache">
+    <link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/highlight.js/8.8.0/styles/monokai_sublime.min.css" />
+    <style type="text/css">
+    pre#plugin-demo > code {
+        border-radius: inherit;
+    }
+    </style>
+    <script type="text/javascript" src="//cdnjs.cloudflare.com/ajax/libs/highlight.js/8.8.0/highlight.min.js"></script>
+    <script type="text/javascript">
+    hljs.initHighlightingOnLoad();
+    </script>
+    <meta name="description" content="Introduction to statscache">
 {% endblock %}
 {% block body %}
-	<p>To-do: write up a succinct introduction to statscache and the fedmsg ecosystem.</p>
+    <section class="lead">
+        <h1>fedmsg analytics</h1>
+        <p>
+            This is the web portal for <strong>statscache</strong>, a system to
+            continuously produce statistics and analyses based on current and
+            historical traffic on the <a href="http://www.fedmsg.com/">fedmsg
+            </a> bus. It works in tandem with the
+            <a href="https://apps.fedoraproject.org/datagrepper/">datagrepper
+            </a> service to ensure that its data represents the results of
+            processing the continuous, unbroken history of all fedmsg traffic.
+        </p>
+    </section>
+
+    <section>
+        <h2>exploration</h2>
+        <p>
+            Check out the <a href="{{ url_for('dashboard') }}">dashboard</a> to
+            see what kind of stats we're collecting so far. If you see a model
+            that looks interesting, click on it to go to the direct feed, where
+            you can drill down into the model's entire, historical data set{# and
+            play around with some graphs#}.
+        </p>
+    </section>
+
+    <section>
+        <h2>architecture</h2>
+        <p>
+            In and of itself, statscache is just a plugin-based framework to
+            support continuous, in-order message processing. It is built on top
+            of the fedmsg consumption interface, which is itself a thin layer
+            atop the underlying <a href="http://mokshaproject.net">Moksha</a>
+            framework. Functionally, statscache acts like any other listener on
+            the fedmsg bus, simply passing on received messages to plugins,
+            but it offers several enhancements to the underlying frameworks
+            that makes it particularly amenable to statistics gathering:
+        </p>
+
+        <section>
+            <h4>extensibility</h4>
+            <p>
+                The plugin-based architecture, combined with the power of
+                SQLALchemy and the convenience of
+                <a href="http://fedmsg.readthedocs.org/en/latest/meta/">
+                fedmsg.meta</a>, makes it almost trivial to add a new analysis
+                model to statscache, without even needing any knowledge of the
+                specific message representation. Shown here is a plugin to
+                measure the relative 'popularity' of users as determined by the
+                number of messages about them on the fedmsg bus.
+<pre id="plugin-demo"><code class="lang-python">from statscache.plugins import BasePlugin, BaseModel
+from datetime import datetime
+import fedmsg.meta
+import sqlalchemy as sa
+
+class Model(BaseModel):
+    # inherited from BaseModel: timestamp = sa.Column(sa.DateTime, ...)
+    references = sa.Column(sa.Integer, nullable=False)
+    username = sa.Column(sa.UnicodeText, nullable=False, index=True)
+
+class Plugin(BasePlugin):
+    name = "popularity"
+    summary = "Number of messages regarding a user"
+    description = """
+    Track the total number of direct references to a username over time.
+    """
+
+    model = Model
+
+    def __init__(self, *args, **kwargs):
+        super(Plugin, self).__init__(*args, **kwargs)
+        self.pending = []
+
+    def process(self, message):
+        """ Process a single message and cache the results internally """
+        timestamp = datetime.fromtimestamp(message['timestamp'])
+        for username in fedmsg.meta.msg2usernames(message):
+            self.pending.append((timestamp, username))
+
+    def update(self, session):
+        """ Commit all cached results to the database """
+        for (timestamp, username) in self.pending:
+            previous = session.query(self.model)\
+                       .filter_by(self.model.username == username)\
+                       .order_by(self.model.timestamp.desc())\
+                       .first()
+            session.add_row(self.model(
+                timestamp=timestamp,
+                username=username,
+                references=getattr(previous, 'references', 0) + 1
+            ))
+        self.pending = []
+        session.commit()
+</code></pre>
+            </p>
+
+            <h4>continuity</h4>
+            <p>
+                Unless explicitly overridden, statscache will deliver plugins
+                each and every message successfully published to the fedmsg
+                bus. Of course, downtime does happen, and that has to be
+                accounted for. Luckily, datagrepper keeps a continuous record
+                of the message history on the fedmsg bus (subject to its own
+                reliability). On start-up, each plugin reports the timestamp
+                of the last message successfully processed, and statscache
+                transparently uses datagrepper to fill in the gap in the
+                plugin's view of the message history.
+                <aside>
+                    Technically, things are a bit more complicated than that.
+                    Since more than one message may have the same timestamp,
+                    it cannot be known whether <em>all</em> messages of a
+                    certain timestamp have been processed successfully. Because
+                    of this, plugins must be able to rollback their model to
+                    the timestamp immediately proceeding the most recently
+                    processed message.
+                </aside>
+            </p>
+
+            <h4>ordering</h4>
+            <p>
+                Although the fedmsg libraries do support backlog processing,
+                old messages are simply interwoven with new ones, making it a
+                very delicate process. Not only is this inconvenient (for
+                example, when calculating running statistics), it can be highly
+                problematic, as an interruption during this process can be
+                practically impossible to recover from.
+            </p>
+            <p>
+                With statscache, this weak point is avoided by guaranteeing
+                strict ordering: each and every message is delivered after
+                those that precede it and before those that succeed it, as
+                determined by their official timestamps. This does mean that
+                restoring from a prolonged downtime can take quite a long time,
+                as all backprocessing must complete prior to the processing of
+                any new messages.
+            </p>
+
+            <h4>concurrency</h4>
+            <p>
+                Without concurrency, statscache would have to severely restrict
+                the complexity of message processing performed by plugins or
+                risk crumbling under high traffic on the bus. Built on top of
+                Twisted, statscache's concurrency primitives easily facilitate
+                a work-queue usage pattern, which allows expensive computations
+                to accumulate during periods of high message frequency without
+                impairing the real-time processing of incoming messages. When
+                activity eventually cools down, the worker threads can churn
+                through the accumulated tasks and get things caught up.
+            </p>
+
+            <h4>restoration</h4>
+            <p>
+                Successfully recovering from outages is a nessecity for
+                reliable and accurate analytics, and statscache was created
+                with this in mind. If a crash occurs at any point during
+                execution, statscache is able to recover fully without data
+                loss.
+            </p>
+        </section>
+    </section>
+
+    <section>
+        <h2>integration</h2>
+        <p>
+            In production, statscache can be utilized as a backend service via
+            its REST API. Currently, statscache supports exporting data models
+            in either CSV or JSON formats, although the serialization
+            mechanism is extensible (check out the source!). The API will be
+            very familiar if you've programmed against datagrepper before. For
+            more details, please see the <a href="{{ url_for('reference') }}">
+            reference page</a>.
+        </p>
+    </section>
 {% endblock %}
