@@ -46,13 +46,32 @@
             font-family: "Glyphicons Halflings";
             src: url("{{ url_for('static', filename='font/glyphicons-halflings-regular.woff') }}");
         }
+
+        {% if request.endpoint != 'dashboard' %}
+        body {
+            max-width: 500pt;
+        }
+        {% endif %}
+
+        section > section {
+            position: relative;
+            left: 2em; /* offset subsections */
+        }
+
+        aside {
+            padding-left: 4pt;
+            border-left-width: 2pt;
+            border-left-style: solid;
+            border-left-color: #aaa;
+            color: #aaa;
+        }
         </style>
 
         <meta name="author" content="Nathaniel Yazdani">
         <title>statscache {% block title %}{% endblock %}</title>
         {% block head %}{% endblock %}
     </head>
-    <body class="container" {% if request.endpoint != 'dashboard' %}style="max-width: 700pt;"{% endif %}>
+    <body class="container">
         <header class="page-header row">
             <div class="masthead">
                 <ul class="nav nav-pills pull-right">
