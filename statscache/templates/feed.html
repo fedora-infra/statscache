@@ -2,228 +2,227 @@
 {% block title %}{{ plugin.name.lower() }}{% endblock %}
 {% block byline %}direct feed{% endblock %}
 {% block head %}
-	<meta name="description" content="Raw feed of '{{ plugin.ident }}' model">
-	<link rel="stylesheet"
-		  type="text/css"
-		  href="{{ url_for('static', filename='style/feed.css') }}" >
-	</link>
-	<script type="application/javascript">
-		String.prototype.format = function (o) {
-		    return this.replace(/{([^{}]*)}/g,
-		        function (a, b) {
-		            var r = o[b];
-		            return typeof r === 'string' || typeof r === 'number' ? r : a;
-		        }
-		    );
-		};
+    <meta name="description" content="Raw feed of '{{ plugin.ident }}' model">
+    <link rel="stylesheet"
+          type="text/css"
+          href="{{ url_for('static', filename='style/feed.css') }}" >
+    </link>
+    <script type="application/javascript">
+        String.prototype.format = function (o) {
+            return this.replace(/{([^{}]*)}/g,
+                function (a, b) {
+                    var r = o[b];
+                    return typeof r === 'string' || typeof r === 'number' ? r : a;
+                }
+            );
+        };
 
-		String.prototype.htmlEscape = function () {
-			var map = {
-				"&": "&amp;",
-				"<": "&lt;",
-				">": "&gt;",
-				'"': '&quot;',
-				"'": '&#39;',
-				"/": '&#x2F;'
-			};
-			return this.replace(/[&<>"'\/]/g, function (symbol) {
-				return map[symbol];
-			});
-		}
+        String.prototype.htmlEscape = function () {
+            var map = {
+                "&": "&amp;",
+                "<": "&lt;",
+                ">": "&gt;",
+                '"': '&quot;',
+                "'": '&#39;',
+                "/": '&#x2F;'
+            };
+            return this.replace(/[&<>"'\/]/g, function (symbol) {
+                return map[symbol];
+            });
+        }
 
-		var pending = null; /* current pending request */
-		var loadingError =
-			"An error occurred, and the content could not be loaded";
-		var feed = "{{ url_for('plugin_model', ident=plugin.ident) }}";
-		var rows_per_page = 100;
-		var page = 1;
-		var order = 'desc';
-		var keys;
-		var template;
+        var pending = null; /* current pending request */
+        var loadingError =
+            "An error occurred, and the content could not be loaded";
+        var feed = "{{ url_for('plugin_model', ident=plugin.ident) }}";
+        var rows_per_page = 100;
+        var page = 1;
+        var order = 'desc';
+        var keys;
+        var template;
 
-		function render(data) {
-			if (page == 1) {
-				/* execute this once for the first AJAX response */
-				keys = Object.keys(data[0]);
-				keys.splice(keys.indexOf('timestamp'), 1);
-				keys.unshift('timestamp');
-				$('thead.stats').html("<tr>" + keys.map(function (s) {
-					return '<th>' + s.htmlEscape() + '</th>';
-				}).join() + "</tr>");
-				template = "<tr>" + keys.map(function (s) {
-					return '<td>{' + s + '}</td>';
-				}).join() + "</tr>";
-			}
-			data.forEach(function (row) {
-				t = new Date();
-				t.setTime(row.timestamp*1000);
-				row.timestamp = t.toUTCString();
-				keys.forEach(function (key) {
-					row[key] = String(row[key]).htmlEscape();
-				});
-				$('tbody.stats').append(template.format(row));
-			});
-			/* TODO: render a configurable graph */
-		}
+        function render(data) {
+            if (page == 1) {
+                /* execute this once for the first AJAX response */
+                keys = Object.keys(data[0]);
+                keys.splice(keys.indexOf('timestamp'), 1);
+                keys.unshift('timestamp');
+                $('thead.stats').html("<tr>" + keys.map(function (s) {
+                    return '<th>' + s.htmlEscape() + '</th>';
+                }).join() + "</tr>");
+                template = "<tr>" + keys.map(function (s) {
+                    return '<td>{' + s + '}</td>';
+                }).join() + "</tr>";
+            }
+            data.forEach(function (row) {
+                t = new Date();
+                t.setTime(row.timestamp*1000);
+                row.timestamp = t.toUTCString();
+                keys.forEach(function (key) {
+                    row[key] = String(row[key]).htmlEscape();
+                });
+                $('tbody.stats').append(template.format(row));
+            });
+            /* TODO: render a configurable graph */
+        }
 
-		function request() {
-			if (pending) {
-				return; /* don't start duplicate requests */
-			}
-			$('#loading').show();
-			pending = $.ajax(
-				feed + "?" + $.param(
-					{
-						'rows_per_page': rows_per_page,
-						'page': page,
-						'start': $('#start-datetime').data('DateTimePicker').date().format('X'),
-						'stop': $('#stop-datetime').data('DateTimePicker').date().format('X'),
-						'order': order,
-					}
-				),
-				{
-					'dataType': 'json',
-					'complete': function (request, status) {
-						pending = null;
-					},
-					'error': function (request, status, error) {
-						console.log("error: " + status);
-						$('#loading').off('appear', request);
-						$('img#spinwheel').hide();
-						$('#loading > label').text(loadingError);
-					},
-					'success': function (response, status, request) {
-						render(response);
-						++page;
-					}
-				}
-			);
-		}
+        function request() {
+            if (pending) {
+                return; /* don't start duplicate requests */
+            }
+            $('#loading').show();
+            pending = $.ajax(
+                feed + "?" + $.param(
+                    {
+                        'rows_per_page': rows_per_page,
+                        'page': page,
+                        'start': $('#start-datetime').data('DateTimePicker').date().format('X'),
+                        'stop': $('#stop-datetime').data('DateTimePicker').date().format('X'),
+                        'order': order,
+                    }
+                ),
+                {
+                    'dataType': 'json',
+                    'complete': function (request, status) {
+                        pending = null;
+                    },
+                    'error': function (request, status, error) {
+                        console.log("error: " + status);
+                        $('#loading').off('appear', request);
+                        $('img#spinwheel').hide();
+                        $('#loading > label').text(loadingError);
+                    },
+                    'success': function (response, status, request) {
+                        render(response);
+                        ++page;
+                    }
+                }
+            );
+        }
 
-		function reload() {
-			/* abort any pending request,... */
-			if (pending) {
-				pending.abort();
-			}
-			/* clear previously loaded content and state,... */
-			$('thead.stats,tbody.stats,tfoot.stats').html("");
-			page = 1;
-			/* and re-load with the new start or stop datetime */
-			request();
-		}
+        function reload() {
+            /* abort any pending request,... */
+            if (pending) {
+                pending.abort();
+            }
+            /* clear previously loaded content and state,... */
+            $('thead.stats,tbody.stats,tfoot.stats').html("");
+            page = 1;
+            /* and re-load with the new start or stop datetime */
+            request();
+        }
 
-		$(function () {
-			$('#chose-ascending').on('click', function (e) {
-				if (order == 'asc') {
-					return; /* don't unnecessarily reload everything */
-				}
-				$('#ordering-menu').text("ascending");
-				order = 'asc';
-				reload();
-			});
-			$('#chose-descending').on('click', function (e) {
-				if (order == 'desc') {
-					return; /* don't unnecessarily reload everything */
-				}
-				order = 'desc';
-				$('#ordering-menu').text("descending");
-				reload();
-			});
+        $(function () {
+            $('#chose-ascending').on('click', function (e) {
+                if (order == 'asc') {
+                    return; /* don't unnecessarily reload everything */
+                }
+                $('#ordering-menu').text("ascending");
+                order = 'asc';
+                reload();
+            });
+            $('#chose-descending').on('click', function (e) {
+                if (order == 'desc') {
+                    return; /* don't unnecessarily reload everything */
+                }
+                order = 'desc';
+                $('#ordering-menu').text("descending");
+                reload();
+            });
 
-			$('.datetimepicker').datetimepicker();
+            $('.datetimepicker').datetimepicker();
 
-			/*
-			{#
-			 # Normalize these to the nearest valid minute to prevent the
-			 # datetime-picker's script from doing so, which would cause an
-			 # unnecessary (and annoying) refresh right away.
-			 #}
-			 */
-			epoch = moment("{{ epoch + 60 - (epoch % 60) }}", "X");
-			now = moment("{{ now - (now % 60) }}", "X");
+            /*
+            {#
+             # Normalize these to the nearest valid minute to prevent the
+             # datetime-picker's script from doing so, which would cause an
+             # unnecessary (and annoying) refresh right away.
+             #}
+             */
+            epoch = moment("{{ epoch + 60 - (epoch % 60) }}", "X");
+            now = moment("{{ now - (now % 60) }}", "X");
 
-			$('#start-datetime').data('DateTimePicker').minDate(epoch);
-			$('#start-datetime').data('DateTimePicker').maxDate(now);
-			$('#start-datetime').data('DateTimePicker').defaultDate(epoch);
-			$('#start-datetime').on('dp.change', function (e) {
-				/* ensure that the stop datetime won't precede the new start */
-				$('#stop-datetime').data('DateTimePicker').minDate(
-					$('#start-datetime').data('DateTimePicker').date()
-				);
-			});
+            $('#start-datetime').data('DateTimePicker').minDate(epoch);
+            $('#start-datetime').data('DateTimePicker').maxDate(now);
+            $('#start-datetime').data('DateTimePicker').defaultDate(epoch);
+            $('#start-datetime').on('dp.change', function (e) {
+                /* ensure that the stop datetime won't precede the new start */
+                $('#stop-datetime').data('DateTimePicker').minDate(
+                    $('#start-datetime').data('DateTimePicker').date()
+                );
+            });
 
-			$('#stop-datetime').data('DateTimePicker').minDate(epoch);
-			$('#stop-datetime').data('DateTimePicker').maxDate(now);
-			$('#stop-datetime').data('DateTimePicker').defaultDate(now);
-			$('#stop-datetime').on('dp.change', function (e) {
-				/* ensure that the start datetime won't succeed the new stop */
-				$('#start-datetime').data('DateTimePicker').maxDate(
-					$('#stop-datetime').data('DateTimePicker').date()
-				);
-			});
+            $('#stop-datetime').data('DateTimePicker').minDate(epoch);
+            $('#stop-datetime').data('DateTimePicker').maxDate(now);
+            $('#stop-datetime').data('DateTimePicker').defaultDate(now);
+            $('#stop-datetime').on('dp.change', function (e) {
+                /* ensure that the start datetime won't succeed the new stop */
+                $('#start-datetime').data('DateTimePicker').maxDate(
+                    $('#stop-datetime').data('DateTimePicker').date()
+                );
+            });
 
-			$('.datetimepicker').on('dp.change', reload);
+            $('.datetimepicker').on('dp.change', reload);
 
-			/* load initial (default) content */
-			$('#loading').on('appear', request);
-			$('#loading').appear();
-			$('#loading').trigger('appear');
-		});
-	</script>
+            /* load initial (default) content */
+            $('#loading').on('appear', request);
+            $('#loading').appear();
+            $('#loading').trigger('appear');
+        });
+    </script>
 {% endblock %}
 {% block body %}
-	<div class="lead">
-		<h1>{{ plugin.name }}</h1>
-		<p>{{ plugin.description }}</p>
-	</div>
-	<div id="config" class="row btn-toolbar" role="toolbar" aria-label="...">
-		<label>Get statistics from</label>
-		<div class='col-sm-6'>
-			<div class="form-group">
-				<div class='input-group datetimepicker' id='start-datetime'>
-					<input type='text' class="form-control" />
-					<span class="input-group-addon">
-						<span class="glyphicon glyphicon-calendar"></span>
-					</span>
-				</div>
-			</div>
-		</div>
-		<label>through</label>
-		<div class='col-sm-6'>
-			<div class="form-group">
-				<div class='input-group datetimepicker' id='stop-datetime'>
-					<input type='text' class="form-control" />
-					<span class="input-group-addon">
-						<span class="glyphicon glyphicon-calendar"></span>
-					</span>
-				</div>
-			</div>
-		</div>
-		<label>in</label>
-		<div class="dropdown">
-			<button class="btn btn-default dropdown-toggle" type="button"
-					data-toggle="dropdown" aria-haspopup="true"
-					aria-expanded="true" id="ordering-menu">
-				descending
-				<span class="caret"></span>
-			</button>
-			<ul class="dropdown-menu" aria-labelledby="ordering-menu">
-				<li><a id="chose-ascending" href="#">ascending</a></li>
-				<li><a id="chose-descending" href="#">descending</a></li>
-			</ul>
-		</div>
-		<label>order.</label>
-	</div>
-	<table class="stats table">
-		<thead class="stats"></thead>
-		<tbody class="stats"></tbody>
-		<tfoot class="stats"></tfoot>
-	</table>
-	<p id="error"></p>
-	<div id="loading" class="center-block">
-		<img id="spinwheel"
-			 src="{{ url_for('static', filename='image/loading.gif') }}"
-			 class="img-responsive" />
-		<label>loading...</label>
-	</div>
+    <div class="lead">
+        <h1>{{ plugin.name }}</h1>
+        <p>{{ plugin.description }}</p>
+    </div>
+    <div id="config" class="row btn-toolbar" role="toolbar" aria-label="...">
+        <label>Get statistics from</label>
+        <div class='col-sm-6'>
+            <div class="form-group">
+                <div class='input-group datetimepicker' id='start-datetime'>
+                    <input type='text' class="form-control" />
+                    <span class="input-group-addon">
+                        <span class="glyphicon glyphicon-calendar"></span>
+                    </span>
+                </div>
+            </div>
+        </div>
+        <label>through</label>
+        <div class='col-sm-6'>
+            <div class="form-group">
+                <div class='input-group datetimepicker' id='stop-datetime'>
+                    <input type='text' class="form-control" />
+                    <span class="input-group-addon">
+                        <span class="glyphicon glyphicon-calendar"></span>
+                    </span>
+                </div>
+            </div>
+        </div>
+        <label>in</label>
+        <div class="dropdown">
+            <button class="btn btn-default dropdown-toggle" type="button"
+                    data-toggle="dropdown" aria-haspopup="true"
+                    aria-expanded="true" id="ordering-menu">
+                descending
+                <span class="caret"></span>
+            </button>
+            <ul class="dropdown-menu" aria-labelledby="ordering-menu">
+                <li><a id="chose-ascending" href="#">ascending</a></li>
+                <li><a id="chose-descending" href="#">descending</a></li>
+            </ul>
+        </div>
+        <label>order.</label>
+    </div>
+    <table class="stats table">
+        <thead class="stats"></thead>
+        <tbody class="stats"></tbody>
+        <tfoot class="stats"></tfoot>
+    </table>
+    <div id="loading" class="center-block">
+        <img id="spinwheel"
+             src="{{ url_for('static', filename='image/loading.gif') }}"
+             class="img-responsive" />
+        <label>loading...</label>
+    </div>
 {% endblock %}
