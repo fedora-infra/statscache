@@ -95,7 +95,7 @@ class Plugin(BasePlugin):
         """ Commit all cached results to the database """
         for (timestamp, username) in self.pending:
             previous = session.query(self.model)\
-                       .filter_by(self.model.username == username)\
+                       .filter(self.model.username == username)\
                        .order_by(self.model.timestamp.desc())\
                        .first()
             session.add_row(self.model(
