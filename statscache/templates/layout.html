@@ -41,6 +41,31 @@
               href="{{ url_for('static', filename='style/bootstrap-datetimepicker.min.css') }}">
         </link>
 
+        <script type="text/javascript">
+        String.prototype.format = function (o) {
+            return this.replace(/{([^{}]*)}/g,
+                function (a, b) {
+                    var r = o[b];
+                    return typeof r === 'string' || typeof r === 'number' ? r : a;
+                }
+            );
+        };
+
+        String.prototype.htmlEscape = function () {
+            var map = {
+                "&": "&amp;",
+                "<": "&lt;",
+                ">": "&gt;",
+                '"': '&quot;',
+                "'": '&#39;',
+                "/": '&#x2F;'
+            };
+            return this.replace(/[&<>"'\/]/g, function (symbol) {
+                return map[symbol];
+            });
+        }
+        </script>
+
         <style type="text/css">
         @font-face {
             font-family: "Glyphicons Halflings";

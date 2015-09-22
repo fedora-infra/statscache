@@ -8,29 +8,6 @@
           href="{{ url_for('static', filename='style/feed.css') }}" >
     </link>
     <script type="application/javascript">
-        String.prototype.format = function (o) {
-            return this.replace(/{([^{}]*)}/g,
-                function (a, b) {
-                    var r = o[b];
-                    return typeof r === 'string' || typeof r === 'number' ? r : a;
-                }
-            );
-        };
-
-        String.prototype.htmlEscape = function () {
-            var map = {
-                "&": "&amp;",
-                "<": "&lt;",
-                ">": "&gt;",
-                '"': '&quot;',
-                "'": '&#39;',
-                "/": '&#x2F;'
-            };
-            return this.replace(/[&<>"'\/]/g, function (symbol) {
-                return map[symbol];
-            });
-        }
-
         var pending = null; /* current pending request */
         var loadingError =
             "An error occurred, and the content could not be loaded";
