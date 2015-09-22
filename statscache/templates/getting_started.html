@@ -59,9 +59,13 @@
                 <a href="http://fedmsg.readthedocs.org/en/latest/meta/">
                 fedmsg.meta</a>, makes it almost trivial to add a new analysis
                 model to statscache, without even needing any knowledge of the
-                specific message representation. Shown here is a plugin to
+                specific message representation. To get statscache to load and
+                run your plugin, all you have to do is include its class as an
+                entry-point under <code>statscache.plugin</code> in your
+                package's <code>setup.py</code>. Shown here is a plugin to
                 measure the relative 'popularity' of users as determined by the
                 number of messages about them on the fedmsg bus.
+            </p>
 <pre id="plugin-demo"><code class="lang-python">from statscache.plugins import BasePlugin, BaseModel
 from datetime import datetime
 import fedmsg.meta
@@ -106,6 +110,7 @@ class Plugin(BasePlugin):
         self.pending = []
         session.commit()
 </code></pre>
+            <p>
             </p>
 
             <h4>continuity</h4>
