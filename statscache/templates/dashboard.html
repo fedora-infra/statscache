@@ -1,0 +1,117 @@
+{% extends "layout.html" %}
+{% block title %}dashboard{% endblock %}
+{% block head %}
+    <meta name="description" content="Overview of all statscache models">
+
+    <link rel="stylesheet"
+          type="text/css"
+          href="{{ url_for('static', filename='style/dashboard.css') }}" >
+    </link>
+
+    <script type="text/javascript">
+        /* --pseudocode--
+        let models = query(url_for('plugin_index'));
+        models.sort();
+        for model in models:
+            lets row = tail(model);
+            $('main').append(new_console(model, rows));
+        */
+
+        var consoleHtml = '\
+<div class="panel panel-default">\
+    <div class="panel-heading">\
+        <h3 class="panel-title">\
+            <a href="#"></a>\
+        </h3>\
+    </div>\
+    <div class="panel-body">\
+        <p>Loading content...</p>\
+    </div>\
+    <table class="stats table">\
+        <thead class="stats"></thead>\
+        <tbody class="stats"></tbody>\
+        <tfoot class="stats"></tfoot>\
+    </table>\
+</div>\
+        ';
+
+        function display(data, view) {
+            /* this is a modified version of render() from the model feed page */
+            $('div.panel-body', view).hide();
+
+            var keys = Object.keys(data[0]);
+            keys.splice(keys.indexOf('timestamp'), 1);
+            keys.unshift('timestamp');
+
+            $('thead.stats', view).html("<tr>" + keys.map(function (s) {
+                return '<th>' + s.htmlEscape() + '</th>';
+            }).join() + "</tr>");
+
+            var template = "<tr>" + keys.map(function (s) {
+                return '<td>{' + s + '}</td>';
+            }).join() + "</tr>";
+
+            data.forEach(function (row) {
+                t = new Date();
+                t.setTime(row.timestamp*1000);
+                row.timestamp = t.toUTCString();
+                keys.forEach(function (key) {
+                    row[key] = String(row[key]).htmlEscape();
+                });
+                $('tbody.stats', view).append(template.format(row));
+            });
+
+        }
+
+        var loadingError =
+            "an error occurred while loading content from the server";
+
+        $.ajax("{{ url_for('plugin_index') }}", {
+            'dataType': 'json',
+            'error': function (request, status, error) {
+                console.log("error: " + status);
+                $('img#spinwheel').hide();
+                $('#loading > label').text(loadingError);
+            },
+            'success': function (models, status, request) {
+                $('#loading').remove();
+                models.sort();
+                for (var i = 0; i < models.length; ++i) {
+                    model = models[i];
+
+                    consoleView = $(consoleHtml).appendTo('main');
+                    $('.panel-title > a', consoleView).text(model);
+                    $('.panel-title > a', consoleView).attr(
+                        'href',
+                        "/web/dashboard/" + model
+                    );
+
+                    var callback = (function (view) {
+                        return function (data, status, request) {
+                            display(data, view);
+                        }
+                    })(consoleView);
+
+                    $.ajax("/api/" + model + "?limit=8", {
+                        'dataType': 'json',
+                        'error': function (request, status, error) {
+                            console.log("error: " + status);
+                            $('div.panel-body > p', consoleView).text(
+                                loadingError
+                            );
+                        },
+                        'success': callback,
+                    });
+                }
+            }
+        });
+    </script>
+{% endblock %}
+{% block body %}
+    <div id="loading" class="center-block">
+        <img id="spinwheel"
+             src="{{ url_for('static', filename='image/loading.gif') }}"
+             class="img-responsive" />
+        <label>loading...</label>
+    </div>
+{% endblock %}

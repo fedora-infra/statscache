@@ -1,5 +1,7 @@
 """ Setup file for statscache """
 
+import os
+import os.path
 from setuptools import setup
 
 
@@ -19,6 +21,11 @@ tests_require = [
     'nose',
     'freezegun'
 ]
+
+# Note to packagers: Install or link the following files using the specfile:
+#   'apache/stastcache.conf' -> '/etc/httpd/conf.d/statscache.conf'
+#   'apache/statscache.wsgi' -> '/usr/share/statscache/statscache.wsgi'
+#   'statscache/static/' -> '/usr/share/statscache/static/'
 
 setup(
     name='statscache',

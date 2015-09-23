@@ -1,0 +1,146 @@
+{% extends "layout.html" %}
+{% block title %}reference{% endblock %}
+{% block head %}
+    <style type="text/css">
+    li {
+        padding-bottom: 6pt;
+    }
+    li:last-child {
+        padding-bottom: 0;
+    }
+    </style>
+    <meta name="description" content="API Reference">
+{% endblock %}
+{% block body %}
+    <section class="lead">
+        <h1>overview</h1>
+        <p>
+            To allow integration with other web applications and services,
+            statscache offers a simple, easy-to-use REST API with support for
+            multiple convenient data formats.
+        </p>
+    </section>
+{# This page really ought to be more thorough #}
+    <section>
+        <h2>queries</h2>
+        <p>
+            The API is accessible under the <code>{{ url_for('plugin_index') }}
+            </code> tree. As this interface is meant to export data, only
+            <code>GET</code> requests are supported on all endpoints.
+        </p>
+        <section>
+            <h4>index</h4>
+            <p>
+                The list of available models is accessible via at
+                <code>{{ url_for('plugin_index') }}</code>. The identifiers are
+                composed of ASCII characters excluding spaces, single or double
+                quotes, punctuation, parantheses, ampersands, and asterisks.
+            </p>
+
+            <h4>layout</h4>
+            <p>
+                Certain models are associated with a <em>layout</em> attribute
+                that describes the structure of the model. If a given model
+                <code>model</code> has a layout attribute, it is accessible
+                at <code>{{ url_for('plugin_layout', ident='model') }}</code>.
+            </p>
+
+            <h4>feed</h4>
+            <p>
+                The rows of any model <code>model</code> that was listed by the
+                index may be retrieved at the
+                <code>{{ url_for('plugin_model', ident='model') }}</code>
+                endpoint. Because a literal dump of the database table would be
+                ridicoulously inefficient, the results of any query are
+                paginated using the protocol discussed later. Queries may be
+                customized using the following query string parameters:
+                <ul style="line-spacing: 2pt;">
+                    <li>
+                        <code>order</code>:
+                        <code>desc</code> or <code>asc</code> to descend
+                        (default) or ascend by row timestamp, respectively.
+                    </li>
+                    <li>
+                        <code>limit</code>:
+                        a natural number (integer greater than or equal to
+                        zero) to restrict the number of rows in the result to
+                        at most that many, prior to pagination.
+                    </li>
+                    <li>
+                        <code>rows_per_page</code>:
+                        an integer in the interval [0, 100] (defaulting to 100)
+                        which will be the number of rows returned in each page.
+                    </li>
+                    <li>
+                        <code>page</code>:
+                        a number <em>n</em> greater than zero (defaulting to 1)
+                        to request the <em>n</em>th page of rows, which are the
+                        <code>rows_per_page</code> rows after skipping the
+                        initial (<em>n</em>-1)&times;<code>rows_per_page</code>
+                        rows.
+                    </li>
+                    <li>
+                        <code>start</code>:
+                        an integer or floating-point number that is interpreted
+                        as the second-based UNIX timestamp before which rows
+                        are filtered out.
+                    </li>
+                    <li>
+                        <code>stop</code>:
+                        an integer or floating-point number that is interpreted
+                        as the second-based UNIX timestamp after which rows
+                        are filtered out.
+                    </li>
+                </ul>
+            </p>
+        </section>
+    </section>
+    <section>
+        <h2>formats</h2>
+        <p>
+            With the exception of layouts, all endpoints support serialization
+            to JSON[-P] and CSV. The HTTP <code>Accept</code> header is what
+            determines the format of the response. Both the <code>text/</code>
+            or <code>application/</code> prefixes are accepted. Note that a
+            request for JavaScript content is interpreted exactly the same as
+            a request for JSON data, and in either case a JSON-P request will
+            get a response with a JavaScript mime-type.
+        </p>
+    </section>
+    <section>
+        <h2>cross-origin</h2>
+        <p>
+            Cross-origin AJAX requests may be done the traditional way, with
+            JSON-P, but that method is neither necessary not recommended.
+            JSON-P is limited in that there is no way to retrieve the response
+            headers, which statscache uses to pass on important metadata
+            regarding pagination. Fortunately, modern browsers support the
+            Cross-Origin Resource Sharing (CORS) protocol, an opt-in policy
+            system for servers to allow direct AJAX requests and access to
+            designated response headers. Using CORS requires no additional work
+            on your part, as most major JavaScript libraries will transparently
+            activate it when appropriate.
+        </p>
+        <aside>
+            <p>
+                JSON-P, or JSON with padding, is a mechanism to circumvent
+                cross-origin AJAX request restrictions by wrapping the data in
+                a function invocation, the name of which is provided in the
+                <code>callback</code> query argument.
+            </p>
+        </aside>
+    </section>
+    <section>
+        <h2>pagination</h2>
+        <p>
+            In feed responses, statscache passes on information about
+            pagination through several headers. (If you're familiar with the
+            GitHub API, this mechanism is very similar.) The <code>Link</code>
+            header is used to provide links to the <code>next</code> and <code>
+            previous</code> pages, if they exist. Every response also includes
+            an <code>X-Link-Number</code> and an <code>X-Link-Count</code>
+            header, which give the current page number (starting from one) and
+            the total number of pages, respectively.
+        </p>
+    </section>
+{% endblock %}

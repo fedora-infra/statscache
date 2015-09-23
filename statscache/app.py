@@ -98,7 +98,6 @@ def get_mimetype():
         'text/javascript',
         'application/csv',
         'text/csv',
-#        'text/html', # currently, no HTML renderers have been implemented
     ]) or ""
 
 
@@ -111,8 +110,8 @@ def plugin_index():
     return jsonp(json.dumps(plugins.keys()))
 
 
-@app.route('/api/<name>')
-def plugin_model(name):
+@app.route('/api/<ident>')
+def plugin_model(ident):
     """ Get the contents of the plugin's model
 
     Arguments (from query string):
@@ -123,9 +122,9 @@ def plugin_model(name):
         page: which page (starting from 1) of the paginated results to return
         rows_per_page: how many entries to return per page
     """
-    plugin = plugins.get(name)
+    plugin = plugins.get(ident)
     if not hasattr(plugin, 'model'):
-        return '"No such model for \'{}\'"'.format(name), 404
+        return '"No such model for \'{}\'"'.format(ident), 404
     model = plugin.model
     query = session.query(model)
 
@@ -161,16 +160,14 @@ def plugin_model(name):
             mimetype=mimetype,
             headers=headers
         )
-#    elif mimetype.endswith('html'):
-#        return flask.render_template('view.html', data=model.to_json(rows))
     else:
         flask.abort(406)
 
 
-@app.route('/api/<name>/layout')
-def plugin_layout(name):
+@app.route('/api/<ident>/layout')
+def plugin_layout(ident):
     """ Get the layout of the plugin """
-    plugin = plugins.get(name)
+    plugin = plugins.get(ident)
     mimetype = get_mimetype()
     if not mimetype.endswith('json') and not mimetype.endswith('javascript'):
         flask.abort(406)
@@ -179,26 +176,83 @@ def plugin_layout(name):
     return jsonp(json.dumps(plugin.layout))
 
 
+@app.route('/')
+@app.route('/web/')
+def home_redirect():
+    """ Redirect users to the 'home' web page """
+    return flask.redirect(flask.url_for('getting_started'))
+
+
+@app.route('/web/getting-started')
+def getting_started():
+    """ Getting started page """
+    return flask.render_template('getting_started.html')
+
+
+@app.route('/web/dashboard')
+def dashboard():
+    """ Overview of recent model changes """
+    return flask.render_template('dashboard.html')
+
+
+@app.route('/web/dashboard/<ident>')
+def display(ident):
+    """ View of the historical activity of a single model """
+    plugin = plugins.get(ident)
+    if not hasattr(plugin, 'model'):
+        flask.abort(404)
+    return flask.render_template(
+        'display.html',
+        plugin=plugin,
+        now=time.time(),
+        epoch=time.mktime(config['statscache.consumer.epoch'].timetuple())
+    )
+
+
+@app.route('/web/reference')
+def reference():
+    """ Simple guide to using web and REST interfaces """
+    return flask.render_template('reference.html')
+
+
 @app.errorhandler(404)
 def resource_not_found(error):
-    name = (flask.request.view_args or {}).get('name')
-    msg = "No such resource"
-    if name is not None:
-        msg += " for {}".format(name)
-    return flask.Response(
-        response=msg,
-        mimetype='text/plain',
-        status=404
-    )
+    message = "No such resource"
+    ident = (flask.request.view_args or {}).get('ident')
+    if ident is not None:
+        message += " for {}".format(ident)
+    if get_mimetype().endswith('html'):
+        return flask.render_template(
+            'error.html',
+            message=message,
+            status=404
+        )
+    else:
+        return flask.Response(
+            response=message,
+            status=404,
+            mimetype='text/plain'
+        )
 
 
 @app.errorhandler(406)
 def unacceptable_content(error):
-    return flask.Response(
-        response="Content-type(s) not available",
-        mimetype='text/plain',
-        status=406
-    )
+    message = "Content-type(s) not available"
+    ident = (flask.request.view_args or {}).get('ident')
+    if ident is not None:
+        message += " for {}".format(ident)
+    if get_mimetype().endswith('html'):
+        return flask.render_template(
+            'error.html',
+            message=message,
+            status=406
+        )
+    else:
+        return flask.Response(
+            response=message,
+            status=406,
+            mimetype='text/plain'
+        )
 
 
 if __name__ == '__main__':

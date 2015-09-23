@@ -1,0 +1,7 @@
+{% extends "layout.html" %}
+{% block title %}error{% endblock %}
+{% block head %}
+	<meta name="description" content="{{ message }}">
+{% endblock %}
+{% block byline %}error{% endblock %}
+{% block body %}<p>{{ message.lower() }}</p>{% endblock %}
