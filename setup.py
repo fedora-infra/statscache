@@ -33,6 +33,10 @@ install_data = [
         expand_directory('statscache/static/style/')),
     ('/usr/share/statscache/static/script',
         expand_directory('statscache/static/script/')),
+    ('/usr/share/statscache/static/image',
+        expand_directory('statscache/static/image/')),
+    ('/usr/share/statscache/static/font',
+        expand_directory('statscache/static/font/')),
 ]
 
 setup(
