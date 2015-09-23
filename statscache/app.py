@@ -104,7 +104,6 @@ def get_mimetype():
         'text/javascript',
         'application/csv',
         'text/csv',
-        'text/html', # currently, no HTML renderers have been implemented
     ]) or ""
 
 
@@ -172,13 +171,6 @@ def plugin_model(ident):
             mimetype=mimetype,
             headers=headers
         )
-    elif mimetype.endswith('html'):
-        return flask.render_template(
-            'feed.html',
-            plugin=plugin,
-            now=time.time(),
-            epoch=time.mktime(config['statscache.consumer.epoch'].timetuple())
-        )
     else:
         flask.abort(406)
 
@@ -212,6 +204,20 @@ def getting_started():
 def dashboard():
     """ Overview of recent model changes """
     return flask.render_template('dashboard.html')
+
+
+@app.route('/web/dashboard/<ident>')
+def display(ident):
+    """ View of the historical activity of a single model """
+    plugin = plugins.get(ident)
+    if not hasattr(plugin, 'model'):
+        flask.abort(404)
+    return flask.render_template(
+        'display.html',
+        plugin=plugin,
+        now=time.time(),
+        epoch=time.mktime(config['statscache.consumer.epoch'].timetuple())
+    )
 
 
 @app.route('/web/reference')

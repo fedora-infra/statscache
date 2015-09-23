@@ -5,7 +5,7 @@
 
     <link rel="stylesheet"
           type="text/css"
-          href="{{ url_for('static', filename='style/feed.css') }}" >
+          href="{{ url_for('static', filename='style/dashboard.css') }}" >
     </link>
 
     <script type="text/javascript">
@@ -78,13 +78,13 @@
                 models.sort();
                 for (var i = 0; i < models.length; ++i) {
                     model = models[i];
-                    url = "/api/" + model + "?" + $.param({
-                        'limit': 8
-                    });
 
                     consoleView = $(consoleHtml).appendTo('main');
                     $('.panel-title > a', consoleView).text(model);
-                    $('.panel-title > a', consoleView).attr('href', url);
+                    $('.panel-title > a', consoleView).attr(
+                        'href',
+                        "/web/dashboard/" + model
+                    );
 
                     var callback = (function (view) {
                         return function (data, status, request) {
@@ -92,7 +92,7 @@
                         }
                     })(consoleView);
 
-                    $.ajax(url, {
+                    $.ajax("/api/" + model + "?limit=8", {
                         'dataType': 'json',
                         'error': function (request, status, error) {
                             console.log("error: " + status);

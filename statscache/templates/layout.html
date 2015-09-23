@@ -72,7 +72,7 @@
             src: url("{{ url_for('static', filename='font/glyphicons-halflings-regular.woff') }}");
         }
 
-        {% if request.endpoint != 'plugin_model' %}
+        {% if request.endpoint != 'display' %}
         body {
             max-width: 500pt;
         }
