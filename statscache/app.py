@@ -21,12 +21,6 @@ uri = config['statscache.sqlalchemy.uri']
 session = statscache.utils.init_model(uri)
 
 
-def wants_pagination():
-    """ Whether the request desires response pagination """
-    argument = flask.request.args.get('paginate')
-    return argument == 'true' or argument == 'yes' or \
-        'page' in flask.request.args or 'rows_per_page' in flask.request.args
-
 def paginate(queryset):
     """
     Generate data for rendering the current page based on the view arguments.
@@ -121,15 +115,11 @@ def plugin_index():
 def plugin_model(name):
     """ Get the contents of the plugin's model
 
-    Pagination is optionally available.
-
     Arguments (from query string):
         order: ascend ('asc') or descend ('desc') results by timestamp
         limit: limit results to this many rows, before pagination
         start: exclude results older than the given UTC timestamp
         stop: exclude results newer than the given UTC timestamp
-        paginate: whether to paginate ('yes'/'true' always assumed if 'page'
-            or 'rows_per_page' is given)
         page: which page (starting from 1) of the paginated results to return
         rows_per_page: how many entries to return per page
     """
@@ -161,8 +151,7 @@ def plugin_model(name):
         query = query.limit(int(flask.request.args['limit']))
 
     mimetype = get_mimetype()
-    (items, headers) = paginate(query) if wants_pagination() else (query.all(),
-                                                                   {})
+    (items, headers) = paginate(query)
     if mimetype.endswith('json') or mimetype.endswith('javascript'):
         return jsonp(model.to_json(items), headers=headers)
     elif mimetype.endswith('csv'):
