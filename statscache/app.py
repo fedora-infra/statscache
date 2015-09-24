@@ -105,9 +105,16 @@ def get_mimetype():
 def plugin_index():
     """ Get an index of the available plugins (as an array) """
     mimetype = get_mimetype()
-    if not mimetype.endswith('json') and not mimetype.endswith('javascript'):
+    if mimetype.endswith('json') or mimetype.endswith('javascript'):
+        return jsonp(json.dumps(plugins.keys()))
+    elif mimetype.endswith('csv'):
+        return flask.Response(
+            response="\n".join(plugins.keys()),
+            status=200,
+            mimetype=mimetype
+        )
+    else:
         flask.abort(406)
-    return jsonp(json.dumps(plugins.keys()))
 
 
 @app.route('/api/<ident>')
