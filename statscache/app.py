@@ -7,9 +7,6 @@ import urllib
 import time
 import datetime
 
-DEFAULT_ROWS_PER_PAGE = 100
-MAXIMUM_ROWS_PER_PAGE = 100
-
 app = flask.Flask(__name__)
 
 config = fedmsg.config.load_config()
@@ -18,10 +15,12 @@ plugins = {
 } # mapping of identifiers to plugin instances
 
 uri = config['statscache.sqlalchemy.uri']
+default_rows_per_page = config['statscache.app.default_rows_per_page']
+maximum_rows_per_page = config['statscache.app.maximum_rows_per_page']
 session = statscache.utils.init_model(uri)
 
 
-def paginate(queryset):
+def paginate(queryset, limit=None):
     """
     Generate data for rendering the current page based on the view arguments.
 
@@ -29,7 +28,7 @@ def paginate(queryset):
         queryset: A SQLAlchemy queryset encompassing all the data to
             be paginated (and nothing else).
     Returns:
-        A tuple: (page_items, prev_link, next_link)
+        A tuple: (page_items, headers)
         where
             items: Result of the query for the current page.
             headers: A dictionary of HTTP headers to include in the response,
@@ -39,16 +38,22 @@ def paginate(queryset):
     # parse view arguments
     page_number = int(flask.request.args.get('page', default=1))
     page_length = min(
-        MAXIMUM_ROWS_PER_PAGE,
+        maximum_rows_per_page,
         int(flask.request.args.get('rows_per_page',
-                                   default=DEFAULT_ROWS_PER_PAGE))
+                                   default=default_rows_per_page))
     )
 
-    items_count = queryset.count()
+    items_count = int(limit or queryset.count())
     page_count = items_count / page_length + \
         (1 if items_count % page_length > 0 else 0)
-    queryset = \
-        queryset.offset((page_number - 1) * page_length).limit(page_length)
+    page_start = (page_number - 1) * page_length
+    page_stop = min(page_length, items_count - page_start)
+    queryset = queryset.slice(page_start, page_stop)
+
+    if page_start > items_count:
+        # In this case, an empty response is safely generated, but it would be
+        # bad practice to respond to invalid requests as if they were correct.
+        flask.abort(400)
 
     # prepare response link headers
     page_links = []
@@ -153,11 +158,8 @@ def plugin_model(ident):
             model.timestamp <= datetime.datetime.fromtimestamp(float(stop))
     )
 
-    if 'limit' in flask.request.args:
-        query = query.limit(int(flask.request.args['limit']))
-
     mimetype = get_mimetype()
-    (items, headers) = paginate(query)
+    (items, headers) = paginate(query, limit=flask.request.args.get('limit'))
     if mimetype.endswith('json') or mimetype.endswith('javascript'):
         return jsonp(model.to_json(items), headers=headers)
     elif mimetype.endswith('csv'):
