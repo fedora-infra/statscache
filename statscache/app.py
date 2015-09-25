@@ -29,7 +29,7 @@ def paginate(queryset, limit=None):
         queryset: A SQLAlchemy queryset encompassing all the data to
             be paginated (and nothing else).
     Returns:
-        A tuple: (page_items, prev_link, next_link)
+        A tuple: (page_items, headers)
         where
             items: Result of the query for the current page.
             headers: A dictionary of HTTP headers to include in the response,
