@@ -7,9 +7,6 @@ import urllib
 import time
 import datetime
 
-DEFAULT_ROWS_PER_PAGE = 100
-MAXIMUM_ROWS_PER_PAGE = 100
-
 app = flask.Flask(__name__)
 
 config = fedmsg.config.load_config()
@@ -18,6 +15,8 @@ plugins = {
 } # mapping of identifiers to plugin instances
 
 uri = config['statscache.sqlalchemy.uri']
+default_rows_per_page = config['statscache.app.default_rows_per_page']
+maximum_rows_per_page = config['statscache.app.maximum_rows_per_page']
 session = statscache.utils.init_model(uri)
 
 
@@ -39,9 +38,9 @@ def paginate(queryset, limit=None):
     # parse view arguments
     page_number = int(flask.request.args.get('page', default=1))
     page_length = min(
-        MAXIMUM_ROWS_PER_PAGE,
+        maximum_rows_per_page,
         int(flask.request.args.get('rows_per_page',
-                                   default=DEFAULT_ROWS_PER_PAGE))
+                                   default=default_rows_per_page))
     )
 
     items_count = int(limit or queryset.count())
