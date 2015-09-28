@@ -110,16 +110,19 @@
     <section>
         <h2>cross-origin</h2>
         <p>
-            Cross-origin AJAX requests may be done the traditional way, with
-            JSON-P, but that method is neither necessary not recommended.
+            The statscache web API supports Cross-Origin Resource Sharing
+            (CORS), an opt-in mechanism to allow direct AJAX requests and
+            access to designated response headers. Using CORS requires no
+            additional work on your part, as most major JavaScript libraries
+            transparently activate it when appropriate.
+        </p>
+        <p>
+            Cross-origin AJAX requests may also be done the traditional way,
+            using JSON-P, but that method is neither necessary not recommended.
             JSON-P is limited in that there is no way to retrieve the response
             headers, which statscache uses to pass on important metadata
-            regarding pagination. Fortunately, modern browsers support the
-            Cross-Origin Resource Sharing (CORS) protocol, an opt-in policy
-            system for servers to allow direct AJAX requests and access to
-            designated response headers. Using CORS requires no additional work
-            on your part, as most major JavaScript libraries will transparently
-            activate it when appropriate.
+            regarding pagination. Still, if you are in a situation where there
+            are compelling reasons to do so, using JSON-P is an option.
         </p>
         <aside>
             <p>
