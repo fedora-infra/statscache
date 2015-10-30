@@ -16,7 +16,7 @@ class Schedule(object):
         self.interval = interval
         if not isinstance(self.interval, datetime.timedelta):
             raise TypeError("'interval' must be an instance of 'timedelta'")
-        self.epoch = epoch or Frequency.epoch
+        self.epoch = epoch or Schedule.epoch
         if not isinstance(self.epoch, datetime.datetime):
             raise TypeError("'epoch' must be an instance of 'datetime'")
 
