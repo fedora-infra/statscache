@@ -29,7 +29,7 @@ tests_require = [
 
 setup(
     name='statscache',
-    version='0.0.2',
+    version='0.0.3',
     description='Daemon to build and keep fedmsg statistics',
     long_description=get_description(),
     author='Ralph Bean',
@@ -40,7 +40,10 @@ setup(
     install_requires=requires,
     tests_require=tests_require,
     test_suite='nose.collector',
-    packages=['statscache'],
+    packages=[
+        'statscache',
+        'statscache/plugins',
+    ],
     include_package_data=True,
     zip_safe=False,
     classifiers=[

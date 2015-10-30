@@ -1,4 +1,12 @@
 
+0.0.3
+-----
+
+Commits
+
+- 4baf09ea2 Include some forgotten things in packaging declarations.
+  https://github.com/fedora-infra/statscache/commit/4baf09ea2
+
 0.0.2
 -----
 
