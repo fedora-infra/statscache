@@ -40,7 +40,10 @@ setup(
     install_requires=requires,
     tests_require=tests_require,
     test_suite='nose.collector',
-    packages=['statscache'],
+    packages=[
+        'statscache',
+        'statscache/plugins',
+    ],
     include_package_data=True,
     zip_safe=False,
     classifiers=[

@@ -1,5 +1,6 @@
 include README.rst
 include fedmsg.d/statscache.py
+recursive-include docs *
 recursive-include apache *
 recursive-include statscache/static *
 recursive-include statscache/templates *
