@@ -1,0 +1,130 @@
+<!doctype html>
+<html lang="en">
+    <head>
+        <meta charset="utf-8">
+        <meta http-equiv="X-UA-Compatible" content="IE=edge">
+
+        <script type="text/javascript"
+                src="{{ url_for('static', filename='script/jquery-2.1.4.min.js') }}">
+        </script>
+        <script type="text/javascript"
+                src="{{ url_for('static', filename='script/jquery.appear.js') }}">
+        </script>
+
+        <script type="text/javascript"
+                src="{{ url_for('static', filename='script/moment.min.js') }}">
+        </script>
+
+        <script type="text/javascript"
+                src="{{ url_for('static', filename='script/bootstrap.min.js') }}">
+        </script>
+        <script type="text/javascript"
+                src="{{ url_for('static', filename='script/bootstrap-collapse.js') }}">
+        </script>
+        <script type="text/javascript"
+                src="{{ url_for('static', filename='script/bootstrap-transition.js') }}">
+        </script>
+        <script type="text/javascript"
+                src="{{ url_for('static', filename='script/bootstrap-datetimepicker.min.js') }}">
+        </script>
+
+        <link rel="stylesheet"
+              type="text/css"
+              href="{{ url_for('static', filename='style/bootstrap.min.css') }}">
+        </link>
+        <link rel="stylesheet"
+              type="text/css"
+              href="{{ url_for('static', filename='style/bootstrap-theme.min.css') }}">
+        </link>
+        <link rel="stylesheet"
+              type="text/css"
+              href="{{ url_for('static', filename='style/bootstrap-datetimepicker.min.css') }}">
+        </link>
+
+        <script type="text/javascript">
+        String.prototype.format = function (o) {
+            return this.replace(/{([^{}]*)}/g,
+                function (a, b) {
+                    var r = o[b];
+                    return typeof r === 'string' || typeof r === 'number' ? r : a;
+                }
+            );
+        };
+
+        String.prototype.htmlEscape = function () {
+            var map = {
+                "&": "&amp;",
+                "<": "&lt;",
+                ">": "&gt;",
+                '"': '&quot;',
+                "'": '&#39;',
+                "/": '&#x2F;'
+            };
+            return this.replace(/[&<>"'\/]/g, function (symbol) {
+                return map[symbol];
+            });
+        }
+        </script>
+
+        <style type="text/css">
+        @font-face {
+            font-family: "Glyphicons Halflings";
+            src: url("{{ url_for('static', filename='font/glyphicons-halflings-regular.woff') }}");
+        }
+
+        {% if request.endpoint != 'display' %}
+        body {
+            max-width: 500pt;
+        }
+        {% endif %}
+
+        section > section {
+            position: relative;
+            left: 2em; /* offset subsections */
+        }
+
+        aside {
+            padding-left: 4pt;
+            border-left-width: 2pt;
+            border-left-style: solid;
+            border-left-color: #aaa;
+            color: #aaa;
+        }
+        </style>
+
+        <meta name="author" content="Nathaniel Yazdani">
+        <title>statscache {% block title %}{% endblock %}</title>
+        {% block head %}{% endblock %}
+    </head>
+    <body class="container">
+        <header class="page-header row">
+            <div class="masthead">
+                <ul class="nav nav-pills pull-right">
+                    <li{% if request.endpoint == 'getting_started' %} class="active"{% endif %}>
+                        <a href="{{ url_for('getting_started') }}">Getting started</a>
+                    </li>
+                    <li{% if request.endpoint == 'dashboard' %} class="active"{% endif %}>
+                        <a href="{{ url_for('dashboard') }}">Dashboard</a>
+                    </li>
+                    <li{% if request.endpoint == 'reference' %} class="active"{% endif %}>
+                        <a href="{{ url_for('reference') }}">Reference</a>
+                    </li>
+                    {# some sort of embeddable widget be pretty rad #}
+                    <!-- <li{% if request.endpoint == 'widget' %} class="active"{% endif %}><a href="{# url_for('widget') #}">Embedding</a></li> -->
+                    <li><a href="https://github.com/fedora-infra/statscache">Source</a></li>
+                    <li><a href="https://github.com/fedora-infra/statscache/issues">Issues</a></li>
+                </ul>
+                <h3 class="muted">statscache <small>{% block byline %}{% endblock %}</small></h3>
+            </div>
+            {% block header %}{% endblock %}
+        </header>
+        <main>
+            {% block body %}{% endblock %}
+        </main>
+        <footer class="page-footer row">
+            <hr/>
+            {% block footer %}{% endblock %}
+            <p class="text-muted">Copyright &copy; 2015, Fedora Project and its contributors under the GPLv2+</p>
+        </footer>
+    </body>
+</html>
