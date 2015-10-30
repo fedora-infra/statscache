@@ -1,4 +1,403 @@
 
+0.0.2
+-----
+
+Pull Requests
+
+- (@yazman)         #17, Documentation Updates
+  https://github.com/fedora-infra/statscache/pull/17
+- (@yazman)         #18, Dynamic scheduling based on plugins
+  https://github.com/fedora-infra/statscache/pull/18
+- (@yazman)         #19, Plugin initialization bugfix
+  https://github.com/fedora-infra/statscache/pull/19
+- (@yazman)         #20, Dynamic scheduling
+  https://github.com/fedora-infra/statscache/pull/20
+- (@yazman)         #21, Serve a JSON-P list of plugins as root index
+  https://github.com/fedora-infra/statscache/pull/21
+- (@yazman)         #24, Add default JSON/CSV serialization methods
+  https://github.com/fedora-infra/statscache/pull/24
+- (@yazman)         #26, Enable pagination of stats model queries and filtering/ordering by timestamp
+  https://github.com/fedora-infra/statscache/pull/26
+- (@yazman)         #27, Refactor model class creation out of plugin initialization
+  https://github.com/fedora-infra/statscache/pull/27
+- (@yazman)         #28, Real-time message processing and synchronized database updates
+  https://github.com/fedora-infra/statscache/pull/28
+- (@yazman)         #29, Update README
+  https://github.com/fedora-infra/statscache/pull/29
+- (@yazman)         #30, Add a 'limit' query string parameter to the plugin model endpoint
+  https://github.com/fedora-infra/statscache/pull/30
+- (@yazman)         #31, Persistent datagrepper connection
+  https://github.com/fedora-infra/statscache/pull/31
+- (@yazman)         #32, Concurrently query datagrepper during start-up
+  https://github.com/fedora-infra/statscache/pull/32
+- (@yazman)         #33, Streamlined API for plugins
+  https://github.com/fedora-infra/statscache/pull/33
+- (@vivekanand1101) #35, Fixed link for viewing api on localhost
+  https://github.com/fedora-infra/statscache/pull/35
+- (@yazman)         #36, Concurrency interface for plugins
+  https://github.com/fedora-infra/statscache/pull/36
+- (@yazman)         #37, Add missing module import
+  https://github.com/fedora-infra/statscache/pull/37
+- (@yazman)         #39, Make pagination of model queries mandatory
+  https://github.com/fedora-infra/statscache/pull/39
+- (@yazman)         #38, Web Frontend
+  https://github.com/fedora-infra/statscache/pull/38
+- (@yazman)         #40, Support for CSV responses to the model index
+  https://github.com/fedora-infra/statscache/pull/40
+- (@yazman)         #41, Pagination fixes
+  https://github.com/fedora-infra/statscache/pull/41
+- (@yazman)         #42, Reword reference page
+  https://github.com/fedora-infra/statscache/pull/42
+- (@rtnpro)         #43, Fix path to WSGI file apache conf
+  https://github.com/fedora-infra/statscache/pull/43
+- (@rtnpro)         #44, Update group for WSGI daemon process to 'apache'
+  https://github.com/fedora-infra/statscache/pull/44
+
+Commits
+
+- 228437031 Update installation instructions in README
+  https://github.com/fedora-infra/statscache/commit/228437031
+- 8aae92f58 Add lots of docstrings
+  https://github.com/fedora-infra/statscache/commit/8aae92f58
+- da39cb2d3 Correct typos in README and a docstring
+  https://github.com/fedora-infra/statscache/commit/da39cb2d3
+- 66db2d592 Typo in docstring
+  https://github.com/fedora-infra/statscache/commit/66db2d592
+- 7ac384be3 Create missing bucket for one-day frequency
+  https://github.com/fedora-infra/statscache/commit/7ac384be3
+- 17fe46f09 Change positional arguments given by keyword
+  https://github.com/fedora-infra/statscache/commit/17fe46f09
+- b23ee46b0 Separate plugin loading and initialization
+  https://github.com/fedora-infra/statscache/commit/b23ee46b0
+- ba3870ef3 Rename ``plugin.idx`` to ``plugin.ident``
+  https://github.com/fedora-infra/statscache/commit/ba3870ef3
+- 2130b0021 Relocate cache buckets to respective producers
+  https://github.com/fedora-infra/statscache/commit/2130b0021
+- a5a45abbf Provide timestamp to handle() method of plugins
+  https://github.com/fedora-infra/statscache/commit/a5a45abbf
+- 1ddef6d6b Simplify time lapse/frequency classes
+  https://github.com/fedora-infra/statscache/commit/1ddef6d6b
+- 80262dc62 Dynamically generate producers based on plugins
+  https://github.com/fedora-infra/statscache/commit/80262dc62
+- dbe4835f3 Update statscache.plugins.Frequency
+  https://github.com/fedora-infra/statscache/commit/dbe4835f3
+- 33e310595 Synchronize producer/plugin frequencies
+  https://github.com/fedora-infra/statscache/commit/33e310595
+- 95640530a Update scheduling/frequency tests
+  https://github.com/fedora-infra/statscache/commit/95640530a
+- a054fd4cb Correct incorrect keyword parameter default
+  https://github.com/fedora-infra/statscache/commit/a054fd4cb
+- bee8359f4 Simplify Frequency test case method calls
+  https://github.com/fedora-infra/statscache/commit/bee8359f4
+- 8f1ae0e94 Include a default value for frequency epoch
+  https://github.com/fedora-infra/statscache/commit/8f1ae0e94
+- 8fe3d3d3b Separate frontend plugin initialization (bugfix)
+  https://github.com/fedora-infra/statscache/commit/8fe3d3d3b
+- 359eebca0 Add style and font resources for web interface
+  https://github.com/fedora-infra/statscache/commit/359eebca0
+- 00deeb5aa Configure Apache to serve static files
+  https://github.com/fedora-infra/statscache/commit/00deeb5aa
+- 52aaf60f5 Install resource and config. files with package
+  https://github.com/fedora-infra/statscache/commit/52aaf60f5
+- e2677b81c Very basic web frontend
+  https://github.com/fedora-infra/statscache/commit/e2677b81c
+- ec4089324 Add HTML, CSS, and JS files to manifest
+  https://github.com/fedora-infra/statscache/commit/ec4089324
+- fda52eec7 Remove timestamp from plugin handle() method
+  https://github.com/fedora-infra/statscache/commit/fda52eec7
+- e5ab141e5 Remove accidental line of commented-out code
+  https://github.com/fedora-infra/statscache/commit/e5ab141e5
+- f38ffa9f2 Correct frontend timestamp parsing
+  https://github.com/fedora-infra/statscache/commit/f38ffa9f2
+- 9433c1dde Add Moksha Hub version requirement
+  https://github.com/fedora-infra/statscache/commit/9433c1dde
+- 1c400e3f4 Typofix.
+  https://github.com/fedora-infra/statscache/commit/1c400e3f4
+- 22e0a0924 Re-arrange how db tables get created.
+  https://github.com/fedora-infra/statscache/commit/22e0a0924
+- fc420f3b7 Create a helper function for JSON[-P] handling
+  https://github.com/fedora-infra/statscache/commit/fc420f3b7
+- 6a931d559 Implement a web interface index route
+  https://github.com/fedora-infra/statscache/commit/6a931d559
+- 432e9a8e8 Generate a 404 response for nonexistent models
+  https://github.com/fedora-infra/statscache/commit/432e9a8e8
+- ccaf3bbed Add a 404 error string to the layout route
+  https://github.com/fedora-infra/statscache/commit/ccaf3bbed
+- 734203762 Remove unused variable
+  https://github.com/fedora-infra/statscache/commit/734203762
+- 8f0f4de40 Add default JSON and CSV serializer methods
+  https://github.com/fedora-infra/statscache/commit/8f0f4de40
+- 5887db45f Choose acceptable response content-types
+  https://github.com/fedora-infra/statscache/commit/5887db45f
+- 99abb2c73 Use Flask error handling
+  https://github.com/fedora-infra/statscache/commit/99abb2c73
+- 08a867e52 Fix CSV serialization
+  https://github.com/fedora-infra/statscache/commit/08a867e52
+- 514de7881 Combine helper function with sole user
+  https://github.com/fedora-infra/statscache/commit/514de7881
+- 90e076939 Relocate plugin model URL endpoints under '/api/'
+  https://github.com/fedora-infra/statscache/commit/90e076939
+- 037ad3633 Add SQLAlchemy query paginator class
+  https://github.com/fedora-infra/statscache/commit/037ad3633
+- 871c780ed Reword comment to fit in an 80-character line
+  https://github.com/fedora-infra/statscache/commit/871c780ed
+- 6c8e0ad39 Reword URL endpoint docstrings
+  https://github.com/fedora-infra/statscache/commit/6c8e0ad39
+- 14f393b71 Allow basic query filtering from web interface
+  https://github.com/fedora-infra/statscache/commit/14f393b71
+- 8266427d6 Customize pagination
+  https://github.com/fedora-infra/statscache/commit/8266427d6
+- 52d26188f Allow pagination of JSON-P model queries
+  https://github.com/fedora-infra/statscache/commit/52d26188f
+- 28b759090 Correct behavior of 'paginate' URL argument
+  https://github.com/fedora-infra/statscache/commit/28b759090
+- b706ef1e2 Use urllib for query string formatting
+  https://github.com/fedora-infra/statscache/commit/b706ef1e2
+- b394cf258 Use HTTP headers to control pagination
+  https://github.com/fedora-infra/statscache/commit/b394cf258
+- f5f1ed4db Correct outdated comment
+  https://github.com/fedora-infra/statscache/commit/f5f1ed4db
+- cca89c9de Correct use of mutable default argument
+  https://github.com/fedora-infra/statscache/commit/cca89c9de
+- e0e23bfdd Correct typo in last commit
+  https://github.com/fedora-infra/statscache/commit/e0e23bfdd
+- 0c255d742 Disallow dynamic model class creation
+  https://github.com/fedora-infra/statscache/commit/0c255d742
+- 9da4e013a Refactor backend plugin initialization
+  https://github.com/fedora-infra/statscache/commit/9da4e013a
+- 5ba974627 Add plugins to ready list after initialization
+  https://github.com/fedora-infra/statscache/commit/5ba974627
+- 111434171 Restructure plugin system
+  https://github.com/fedora-infra/statscache/commit/111434171
+- 681551c1b Centralize backlog query
+  https://github.com/fedora-infra/statscache/commit/681551c1b
+- 62afa19a1 Initialize fedmsg.meta in consumer initialization
+  https://github.com/fedora-infra/statscache/commit/62afa19a1
+- ca474db72 Make the frequency epoch a mandatory parameter
+  https://github.com/fedora-infra/statscache/commit/ca474db72
+- 6a64e6bb6 Rename Frequency to Schedule
+  https://github.com/fedora-infra/statscache/commit/6a64e6bb6
+- e718fd02f Python 3 compatibility fix
+  https://github.com/fedora-infra/statscache/commit/e718fd02f
+- ed88eacea Reflow code
+  https://github.com/fedora-infra/statscache/commit/ed88eacea
+- 33f069346 Fix typo
+  https://github.com/fedora-infra/statscache/commit/33f069346
+- 144b76435 Correct plugin backlog delta behavior
+  https://github.com/fedora-infra/statscache/commit/144b76435
+- 3639576bf Update statistics epoch for easier testing
+  https://github.com/fedora-infra/statscache/commit/3639576bf
+- 48143cb07 Correct BasePlugin.latest() behavior
+  https://github.com/fedora-infra/statscache/commit/48143cb07
+- 1f9305346 Fix backlog processing behavior
+  https://github.com/fedora-infra/statscache/commit/1f9305346
+- 5bab8c771 Update docstring
+  https://github.com/fedora-infra/statscache/commit/5bab8c771
+- 4d30faed9 Update README
+  https://github.com/fedora-infra/statscache/commit/4d30faed9
+- 6a840c693 Typo fix in README
+  https://github.com/fedora-infra/statscache/commit/6a840c693
+- d274b2c8f Persistent connections for datagrepper requests
+  https://github.com/fedora-infra/statscache/commit/d274b2c8f
+- 4ac9ab019 Add URL parameter to limit rows
+  https://github.com/fedora-infra/statscache/commit/4ac9ab019
+- 53e230027 Update docstring
+  https://github.com/fedora-infra/statscache/commit/53e230027
+- 425bec715 Correct variable name
+  https://github.com/fedora-infra/statscache/commit/425bec715
+- 099fb7a51 Query datagrepper concurrently during start-up
+  https://github.com/fedora-infra/statscache/commit/099fb7a51
+- 2874e1fae Simplify datagrepper generator code
+  https://github.com/fedora-infra/statscache/commit/2874e1fae
+- a3053c695 Add commented-out datagrepper profiling code
+  https://github.com/fedora-infra/statscache/commit/a3053c695
+- 765456b93 Add configuration option for datagrepper workers
+  https://github.com/fedora-infra/statscache/commit/765456b93
+- 32578f9be Enable datagrepper profiling by configuration
+  https://github.com/fedora-infra/statscache/commit/32578f9be
+- e30986541 Remove dead variable
+  https://github.com/fedora-infra/statscache/commit/e30986541
+- c5fee325c Remove dead imports
+  https://github.com/fedora-infra/statscache/commit/c5fee325c
+- 88e4c151c Consolidate public API under statscache.api
+  https://github.com/fedora-infra/statscache/commit/88e4c151c
+- ff0ec0097 Remove dead import
+  https://github.com/fedora-infra/statscache/commit/ff0ec0097
+- 0d8782218 Reorganize plugin API as statscache.plugins
+  https://github.com/fedora-infra/statscache/commit/0d8782218
+- 0ffb48a31 Update docstrings
+  https://github.com/fedora-infra/statscache/commit/0ffb48a31
+- 7f36c5f33 Add extensive docstring to plugin base class
+  https://github.com/fedora-infra/statscache/commit/7f36c5f33
+- f45004a38 Remove accidental import
+  https://github.com/fedora-infra/statscache/commit/f45004a38
+- a7216fd13 Create plugin worker threads API
+  https://github.com/fedora-infra/statscache/commit/a7216fd13
+- df185202c Elaborate in threading interface docstrings
+  https://github.com/fedora-infra/statscache/commit/df185202c
+- c7cc60f68 Choose worker thread counts by number of cores
+  https://github.com/fedora-infra/statscache/commit/c7cc60f68
+- add465fa4 Create asychronous plugin abstract base class
+  https://github.com/fedora-infra/statscache/commit/add465fa4
+- ce8d75dad Revise StatsConsumer logging statements
+  https://github.com/fedora-infra/statscache/commit/ce8d75dad
+- 355a3e88c Expand docstring
+  https://github.com/fedora-infra/statscache/commit/355a3e88c
+- b0811be4e Fix bad variable reference
+  https://github.com/fedora-infra/statscache/commit/b0811be4e
+- b1d873fb9 Ensure worker thread respawn on completion
+  https://github.com/fedora-infra/statscache/commit/b1d873fb9
+- 5f82001f9 Correct Twisted imports
+  https://github.com/fedora-infra/statscache/commit/5f82001f9
+- 4f6a65f36 Update README.rst
+  https://github.com/fedora-infra/statscache/commit/4f6a65f36
+- 79bd6db94 Improve error logging for worker threads
+  https://github.com/fedora-infra/statscache/commit/79bd6db94
+- 64257f8cb Properly import logger for plugin base classes
+  https://github.com/fedora-infra/statscache/commit/64257f8cb
+- 8cff32793 Specifically list symbols to export as plugin API
+  https://github.com/fedora-infra/statscache/commit/8cff32793
+- ad1af027f Fix symbol reference from wrong module
+  https://github.com/fedora-infra/statscache/commit/ad1af027f
+- b6f6f9366 Correct addition of callbacks in futures
+  https://github.com/fedora-infra/statscache/commit/b6f6f9366
+- a8136468b Correct inner class reference
+  https://github.com/fedora-infra/statscache/commit/a8136468b
+- d192dc5f1 Conceal Twisted's callback composition
+  https://github.com/fedora-infra/statscache/commit/d192dc5f1
+- a7736cee2 Add missing module import
+  https://github.com/fedora-infra/statscache/commit/a7736cee2
+- 2a3261739 Revise template hierarchy
+  https://github.com/fedora-infra/statscache/commit/2a3261739
+- aebd10535 Stylistic changes to model feed web page
+  https://github.com/fedora-infra/statscache/commit/aebd10535
+- 1e0af56ac Remove underscore.js dependency
+  https://github.com/fedora-infra/statscache/commit/1e0af56ac
+- d7ea8d852 Perform proper HTML escaping in model feed
+  https://github.com/fedora-infra/statscache/commit/d7ea8d852
+- d7af56d00 Remove redundant sorting in model feed
+  https://github.com/fedora-infra/statscache/commit/d7af56d00
+- e748ae6e3 Slight revision of feed JavaScript
+  https://github.com/fedora-infra/statscache/commit/e748ae6e3
+- 99324d37c Remove unnecessary argument to error template
+  https://github.com/fedora-infra/statscache/commit/99324d37c
+- 76baf6d72 Create placeholder reference web page
+  https://github.com/fedora-infra/statscache/commit/76baf6d72
+- b8260a3e4 Reduce font size of model feed rows
+  https://github.com/fedora-infra/statscache/commit/b8260a3e4
+- 9815b87aa Include plugin description on model feed web page
+  https://github.com/fedora-infra/statscache/commit/9815b87aa
+- 450b5583b Reduce size of statscache name in header
+  https://github.com/fedora-infra/statscache/commit/450b5583b
+- d580dba15 Create placeholder getting started web page
+  https://github.com/fedora-infra/statscache/commit/d580dba15
+- b3a12295e Redirect web index requests to getting started
+  https://github.com/fedora-infra/statscache/commit/b3a12295e
+- 5bab27955 Visual updates to model feed web page
+  https://github.com/fedora-infra/statscache/commit/5bab27955
+- 533d45807 Decrease the statscache header font size (again)
+  https://github.com/fedora-infra/statscache/commit/533d45807
+- 5919b809d Create placeholder dashboard web page
+  https://github.com/fedora-infra/statscache/commit/5919b809d
+- 6880da479 Load model feed via AJAX
+  https://github.com/fedora-infra/statscache/commit/6880da479
+- 2297807e4 Include Bootstrap JavaScript
+  https://github.com/fedora-infra/statscache/commit/2297807e4
+- 3ebec59e9 Update Bootstrap CSS to v3.3.5
+  https://github.com/fedora-infra/statscache/commit/3ebec59e9
+- 4fc0c910f Include Bootstrap's Glyphicons font
+  https://github.com/fedora-infra/statscache/commit/4fc0c910f
+- 4f7371057 Rename the "fonts" folder to "font"
+  https://github.com/fedora-infra/statscache/commit/4f7371057
+- 31ec29c84 Install common Bootstrap plugins
+  https://github.com/fedora-infra/statscache/commit/31ec29c84
+- d7aa1374c Refine CSS rules in feed.css
+  https://github.com/fedora-infra/statscache/commit/d7aa1374c
+- b0b95d8a6 Install moment.js
+  https://github.com/fedora-infra/statscache/commit/b0b95d8a6
+- ba4096a97 Install datetime-picker plugin for Bootstrap
+  https://github.com/fedora-infra/statscache/commit/ba4096a97
+- ed63a4021 Reflow base template
+  https://github.com/fedora-infra/statscache/commit/ed63a4021
+- ff1b72c64 Load Moment.js prior to the datetime-picker plugin
+  https://github.com/fedora-infra/statscache/commit/ff1b72c64
+- 761685cf4 Do not provide JSON data to web feed template
+  https://github.com/fedora-infra/statscache/commit/761685cf4
+- 43fc655d9 Add loading status and error message
+  https://github.com/fedora-infra/statscache/commit/43fc655d9
+- a577603d9 Minor code clean-up in model feed web view
+  https://github.com/fedora-infra/statscache/commit/a577603d9
+- b7e6fe6b8 Add missing ID to primary table element
+  https://github.com/fedora-infra/statscache/commit/b7e6fe6b8
+- 2b40140e4 Add start/stop datetime-pickers to model feed view
+  https://github.com/fedora-infra/statscache/commit/2b40140e4
+- b1a902925 Suppress potential duplication of API requests
+  https://github.com/fedora-infra/statscache/commit/b1a902925
+- 75c02fea7 Include jQuery "appear" plugin
+  https://github.com/fedora-infra/statscache/commit/75c02fea7
+- acee85c6c Continuous scrolling in web view of model feed
+  https://github.com/fedora-infra/statscache/commit/acee85c6c
+- 35ede3928 Remove unnecessary variable
+  https://github.com/fedora-infra/statscache/commit/35ede3928
+- 9a56e58f0 Remove unneeded Bootstrap plugins
+  https://github.com/fedora-infra/statscache/commit/9a56e58f0
+- 932cd6b01 Add ordering dropdown menu to view of model feed
+  https://github.com/fedora-infra/statscache/commit/932cd6b01
+- cbe3a628d Add comment on model feed template
+  https://github.com/fedora-infra/statscache/commit/cbe3a628d
+- c2e1c9bb2 Reload model feed on ordering selection
+  https://github.com/fedora-infra/statscache/commit/c2e1c9bb2
+- 5c963d647 Suppress unnecessary model feed reloads
+  https://github.com/fedora-infra/statscache/commit/5c963d647
+- efee3db99 Remove unused CSS file
+  https://github.com/fedora-infra/statscache/commit/efee3db99
+- c2ca73177 Convert tabs to spaces (1:4)
+  https://github.com/fedora-infra/statscache/commit/c2ca73177
+- 6b6f369c3 Initial version of 'Getting started' page
+  https://github.com/fedora-infra/statscache/commit/6b6f369c3
+- f0e1fbf51 Add custom CSS rules to layout template
+  https://github.com/fedora-infra/statscache/commit/f0e1fbf51
+- 30db8d958 Correct conditional page width
+  https://github.com/fedora-infra/statscache/commit/30db8d958
+- 76baa3157 Correct example plugin in getting started
+  https://github.com/fedora-infra/statscache/commit/76baa3157
+- 619e9d7e4 Explain plugin entry-points in getting started
+  https://github.com/fedora-infra/statscache/commit/619e9d7e4
+- e042ac988 Move utility JS methods to base template
+  https://github.com/fedora-infra/statscache/commit/e042ac988
+- 8d16d7950 Add comment regarding widget to base template
+  https://github.com/fedora-infra/statscache/commit/8d16d7950
+- e6491b2e4 Initial write of API reference web page
+  https://github.com/fedora-infra/statscache/commit/e6491b2e4
+- 910b96c3c Fix incorrect header name in web page
+  https://github.com/fedora-infra/statscache/commit/910b96c3c
+- a7943241c Initial version of dashboard web page
+  https://github.com/fedora-infra/statscache/commit/a7943241c
+- c1e1ad787 Separate the web endpoints from the APIs
+  https://github.com/fedora-infra/statscache/commit/c1e1ad787
+- a6cd0d8d1 Install static resources accessibly to Apache
+  https://github.com/fedora-infra/statscache/commit/a6cd0d8d1
+- 730a75321 Make pagination of model queries mandatory
+  https://github.com/fedora-infra/statscache/commit/730a75321
+- 84347f80e Do not install package data in setup.py
+  https://github.com/fedora-infra/statscache/commit/84347f80e
+- 749a9582d Support for CSV responses to the model index
+  https://github.com/fedora-infra/statscache/commit/749a9582d
+- b949affad Fix plugin_model() handling of query argument
+  https://github.com/fedora-infra/statscache/commit/b949affad
+- 68223d204 Fix docstring of statscache.app.paginate()
+  https://github.com/fedora-infra/statscache/commit/68223d204
+- 5dd7c9c96 Load maximum/default rows per page from config.
+  https://github.com/fedora-infra/statscache/commit/5dd7c9c96
+- d45b5f230 Reword reference page
+  https://github.com/fedora-infra/statscache/commit/d45b5f230
+- 0b329a45a Fix path to WSGI file apache conf
+  https://github.com/fedora-infra/statscache/commit/0b329a45a
+- 9b1f13eef Update group for WSGI daemon process to 'apache'
+  https://github.com/fedora-infra/statscache/commit/9b1f13eef
+- 11b6ac2fc Remove CHANGELOG header.
+  https://github.com/fedora-infra/statscache/commit/11b6ac2fc
+
 0.5.2
 -----
 
