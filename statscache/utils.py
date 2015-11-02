@@ -25,7 +25,8 @@ def find_stats_consumer(hub):
     raise ValueError('StatsConsumer not found.')
 
 
-def datagrep(start, stop, profile=False, quantum=100):
+def datagrep(start, stop, profile=False, quantum=100,
+             endpoint='https://apps.fedoraproject.org/datagrepper/raw/'):
     """ Yield messages generated in the given time interval from datagrepper
 
     Messages are ordered ascending by age (from oldest to newest), so that
@@ -33,7 +34,6 @@ def datagrep(start, stop, profile=False, quantum=100):
     of failure. Messages are generated in collections of the given quantum at a
     time.
     """
-    endpoint = 'https://apps.fedoraproject.org/datagrepper/raw/'
     session = requests.Session()
     session.params = {
         'start': time.mktime(start.timetuple()),

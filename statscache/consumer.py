@@ -40,6 +40,7 @@ class StatsConsumer(fedmsg.consumers.FedmsgConsumer):
         # Read configuration values
         epoch = self.hub.config['statscache.consumer.epoch']
         profile = self.hub.config['statscache.datagrepper.profile']
+        endpoint = self.hub.config['statscache.datagrepper.endpoint']
 
         # Compute pairs of plugins and the point up to which they are accurate
         plugins_by_age = []
@@ -77,7 +78,8 @@ class StatsConsumer(fedmsg.consumers.FedmsgConsumer):
                 plugin.revert(start, session)
             for messages in statscache.utils.datagrep(start,
                                                       stop,
-                                                      profile=profile):
+                                                      profile=profile,
+                                                      endpoint=endpoint):
                 for plugin in self.plugins:
                     for message in messages:
                         plugin.process(copy.deepcopy(message))
