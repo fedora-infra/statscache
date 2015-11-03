@@ -1,0 +1,59 @@
+<html>
+  <head>
+    <script src="https://code.jquery.com/jquery-2.1.4.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.10.6/moment.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/d3/3.5.6/d3.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/uvCharts/1.0.0/uvcharts.min.js"></script>
+  </head>
+  <body>
+  <div id="demo-chart"></div>
+  <script>
+    var type = 'Line';
+    var config = {
+      graph: {
+        orientation: 'Vertical',
+      },
+      meta: {
+        position: '#demo-chart'
+      },
+      dimension: {
+        width: 800,
+        height: 800,
+      },
+    };
+
+    var formattime = function(timestamp, i) {
+      return moment.unix(timestamp).fromNow();
+    };
+    var extract_category = function(item, i) {
+      return item.category;
+    }
+
+    $.ajax({
+      url: 'https://apps.stg.fedoraproject.org/statscache/api/volume-by-category-1m',
+      data: {
+        rows_per_page: 10,
+      },
+      success: function(data) {
+        var categories = $.unique($.map(data, extract_category));
+        var dataset = {};
+        $.each(categories, function(i, category) {
+            dataset[category] = $.map(
+              $.grep(data, function(item, j) {
+                return item.category == category;
+              }),
+              function(item, j) {
+                return {
+                  name: formattime(item.timestamp, j),
+                  value: item.volume,
+                };
+              }
+            ).reverse();
+        });
+        var graph = {categories: categories, dataset: dataset};
+        var chartObject = uv.chart(type, graph, config);
+      }
+    });
+  </script>
+  </body>
+</html>
