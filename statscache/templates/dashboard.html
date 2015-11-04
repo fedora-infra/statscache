@@ -39,6 +39,9 @@
             /* this is a modified version of render() from the model feed page */
             $('div.panel-body', view).hide();
 
+            if (data.length === 0)
+                return;
+
             var keys = Object.keys(data[0]);
             keys.splice(keys.indexOf('timestamp'), 1);
             keys.unshift('timestamp');
