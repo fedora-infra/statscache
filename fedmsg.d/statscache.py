@@ -5,6 +5,8 @@ hostname = socket.gethostname().split('.')[0]
 
 config = {
     "statscache.datagrepper.profile": False,
+    "statscache.datagrepper.endpoint": "https://apps.fedoraproject.org/datagrepper/raw",
+
     # Consumer stuff
     "statscache.consumer.enabled": True,
     "statscache.sqlalchemy.uri": "sqlite:////var/tmp/statscache-dev-db.sqlite",

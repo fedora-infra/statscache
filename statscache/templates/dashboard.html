@@ -39,6 +39,9 @@
             /* this is a modified version of render() from the model feed page */
             $('div.panel-body', view).hide();
 
+            if (data.length === 0)
+                return;
+
             var keys = Object.keys(data[0]);
             keys.splice(keys.indexOf('timestamp'), 1);
             keys.unshift('timestamp');
@@ -83,7 +86,7 @@
                     $('.panel-title > a', consoleView).text(model);
                     $('.panel-title > a', consoleView).attr(
                         'href',
-                        "/web/dashboard/" + model
+                        "{{ url_for('dashboard') }}/" + model
                     );
 
                     var callback = (function (view) {
@@ -92,7 +95,7 @@
                         }
                     })(consoleView);
 
-                    $.ajax("/api/" + model + "?limit=8", {
+                    $.ajax("{{ url_for('plugin_index') }}" + model + "?limit=8", {
                         'dataType': 'json',
                         'error': function (request, status, error) {
                             console.log("error: " + status);

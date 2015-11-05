@@ -1,4 +1,29 @@
 
+0.0.4
+-----
+
+Pull Requests
+
+- (@ralphbean)      #45, Make the datagrepper endpoint configurable.
+  https://github.com/fedora-infra/statscache/pull/45
+- (@ralphbean)      #46, Add an example visualization.
+  https://github.com/fedora-infra/statscache/pull/46
+- (@rtnpro)         #49, Fix JS issues in dashboard
+  https://github.com/fedora-infra/statscache/pull/49
+
+Commits
+
+- d6f0269a6 Typofix.
+  https://github.com/fedora-infra/statscache/commit/d6f0269a6
+- 6da0dd63c Make the datagrepper endpoint configurable.
+  https://github.com/fedora-infra/statscache/commit/6da0dd63c
+- 07515d910 Add an example visualization.
+  https://github.com/fedora-infra/statscache/commit/07515d910
+- e07fca97e Generate URLs with proper basepath in dashboard. Fixes #47
+  https://github.com/fedora-infra/statscache/commit/e07fca97e
+- e74d32359 In dashboard, do not render model data if data is empty. Fixes #48
+  https://github.com/fedora-infra/statscache/commit/e74d32359
+
 0.0.3
 -----
 
