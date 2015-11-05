@@ -29,7 +29,7 @@ tests_require = [
 
 setup(
     name='statscache',
-    version='0.0.3',
+    version='0.0.4',
     description='Daemon to build and keep fedmsg statistics',
     long_description=get_description(),
     author='Ralph Bean',
