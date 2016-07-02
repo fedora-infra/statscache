@@ -49,3 +49,16 @@ class TestStatsConsumer(unittest.TestCase):
             self.consumer.consume(msg)
 
         eq_(self.session.Message.query.count(), 1)
+
+    def test_consume(self):
+        """Test consume method of StatsConsumer."""
+        for plugin in self.consumer.plugins:
+            plugin.process = mock.Mock()
+
+        fixtures = self.fixtures[0]
+        for cnt, msg in enumerate(fixtures):
+            self.consumer.consume(msg)
+            # Check that 'process' method of all plugins was called with the
+            # same message.
+            for plugin in self.consumer.plugins:
+                plugin.process.assert_called_with(msg)
