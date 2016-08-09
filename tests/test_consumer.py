@@ -11,8 +11,6 @@ from statscache.utils import datagrep
 
 import statscache.consumer
 
-TESTDATA_FILENAME = os.path.join(os.path.dirname(__file__), 'fixtures.json')
-
 
 class TestStatsConsumer(unittest.TestCase):
     @classmethod
@@ -27,8 +25,23 @@ class TestStatsConsumer(unittest.TestCase):
         config['statscache.sqlalchemy.uri'] = cls.uri
         cls.fedmsg_config = config
 
-        with open(TESTDATA_FILENAME, 'r') as fobj:
-            cls.fixtures = json.load(fobj)
+        cls.fixtures = {
+            'username': 'apache',
+            'i': 4,
+            'timestamp': 1467814080,
+            'msg_id': u'2016-55d13473-2e48-4b6e-9542-3bc1882152ef',
+            'topic': u'org.release-monitoring.prod.anitya.distro.add',
+            'msg': {
+                'project': None,
+                'message': {
+                    'agent': 'foobar',
+                    'distro': u'CentOS'
+                },
+                'distro': {
+                    'name': 'CentOS'
+                }
+            }
+        }
 
     def setUp(self):
         class FakeHub(object):
@@ -44,10 +57,8 @@ class TestStatsConsumer(unittest.TestCase):
 
     @mock.patch('statscache.utils.datagrep', return_value=[])
     def test_plugins(self, func):
-        self.fixtures = self.fixtures[0]
-        for cnt, msg in enumerate(self.fixtures):
-            self.consumer.consume(msg)
-
+        msg = self.fixtures['msg']
+        self.consumer.consume(msg)
         eq_(self.session.Message.query.count(), 1)
 
     def test_consume(self):
@@ -55,10 +66,9 @@ class TestStatsConsumer(unittest.TestCase):
         for plugin in self.consumer.plugins:
             plugin.process = mock.Mock()
 
-        fixtures = self.fixtures[0]
-        for cnt, msg in enumerate(fixtures):
-            self.consumer.consume(msg)
-            # Check that 'process' method of all plugins was called with the
-            # same message.
-            for plugin in self.consumer.plugins:
-                plugin.process.assert_called_with(msg)
+        msg = self.fixtures['msg']
+        self.consumer.consume(msg)
+        # Check that 'process' method of all plugins was called with the
+        # same message.
+        for plugin in self.consumer.plugins:
+            plugin.process.assert_called_with(msg)
