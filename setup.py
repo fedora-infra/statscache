@@ -9,18 +9,36 @@ def get_description():
     with open('README.rst', 'r') as f:
         return ''.join(f.readlines()[2:])
 
-requires = [
-    'fedmsg',
-    'moksha.hub>=1.4.6',
-    'fedmsg_meta_fedora_infrastructure',
-    'sqlalchemy',
-    'futures',
-]
+def get_requirements(requirements_file='requirements.txt'):
+    """
+    Get the contents of a file listing the requirements.
 
-tests_require = [
-    'nose',
-    'freezegun'
-]
+    Args:
+        requirements_file (str): path to a requirements file
+
+    Returns:
+        list: the list of requirements, or an empty list if
+              `requirements_file` could not be opened or read
+    """
+    lines = open(requirements_file).readlines()
+    dependencies = []
+    for line in lines:
+        maybe_dep = line.strip()
+        if maybe_dep.startswith('#'):
+            # Skip pure comment lines
+            continue
+        if maybe_dep.startswith('git+'):
+            # VCS reference for dev purposes, expect a trailing comment
+            # with the normal requirement
+            __, __, maybe_dep = maybe_dep.rpartition('#')
+        else:
+            # Ignore any trailing comment
+            maybe_dep, __, __ = maybe_dep.partition('#')
+        # Remove any whitespace and assume non-empty results are dependencies
+        maybe_dep = maybe_dep.strip()
+        if maybe_dep:
+            dependencies.append(maybe_dep)
+    return dependencies
 
 # Note to packagers: Install or link the following files using the specfile:
 #   'apache/stastcache.conf' -> '/etc/httpd/conf.d/statscache.conf'
@@ -37,8 +55,8 @@ setup(
     url="https://github.com/fedora-infra/statscache/",
     download_url="https://pypi.python.org/pypi/statscache/",
     license='LGPLv2+',
-    install_requires=requires,
-    tests_require=tests_require,
+    install_requires=get_requirements(),
+    tests_require=get_requirements('requirements_test.txt'),
     test_suite='nose.collector',
     packages=[
         'statscache',
