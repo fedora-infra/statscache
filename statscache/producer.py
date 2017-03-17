@@ -36,7 +36,7 @@ class StatsProducer(moksha.hub.api.PollingProducer):
         for plugin in self.plugins:
             try:
                 plugin.update(session)
-                log.info("Updating model for %r" % plugin.ident)
+                log.debug("Updating model for %r" % plugin.ident)
             except:
                 log.exception("Error during model update for %r" % plugin)
                 session.rollback()
