@@ -72,6 +72,7 @@ import fedmsg.meta
 import sqlalchemy as sa
 
 class Model(BaseModel):
+    __tablename__ = "data_popularity"
     # inherited from BaseModel: timestamp = sa.Column(sa.DateTime, ...)
     references = sa.Column(sa.Integer, nullable=False)
     username = sa.Column(sa.UnicodeText, nullable=False, index=True)
@@ -102,7 +103,7 @@ class Plugin(BasePlugin):
                        .filter(self.model.username == username)\
                        .order_by(self.model.timestamp.desc())\
                        .first()
-            session.add_row(self.model(
+            session.add(self.model(
                 timestamp=timestamp,
                 username=username,
                 references=getattr(previous, 'references', 0) + 1
