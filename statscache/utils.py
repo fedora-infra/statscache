@@ -60,7 +60,8 @@ def datagrep(start, stop, profile=False, quantum=100,
             if profile:
                 net_time = time.time() - net_time
                 cpu_time = time.time()
-            yield response.json()['raw_messages']
+            if response.status_code == 200:
+                yield response.json()['raw_messages']
             if profile:
                 page += 1
                 cpu_time = time.time() - cpu_time
