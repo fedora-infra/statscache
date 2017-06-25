@@ -103,6 +103,9 @@
                     <li{% if request.endpoint == 'getting_started' %} class="active"{% endif %}>
                         <a href="{{ url_for('getting_started') }}">Getting started</a>
                     </li>
+                    <li{% if request.endpoint == 'stats' %} class="active"{% endif %}>
+                        <a href="{{ url_for('stats_list') }}">Stats</a>
+                    </li>
                     <li{% if request.endpoint == 'dashboard' %} class="active"{% endif %}>
                         <a href="{{ url_for('dashboard') }}">Dashboard</a>
                     </li>
