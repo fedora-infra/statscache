@@ -173,6 +173,27 @@ def plugin_model(ident):
         flask.abort(406)
 
 
+@app.route('/stats')
+def stats_list():
+    return flask.render_template(
+        'stats_list.html',
+        plugins=plugins.keys()
+    )
+
+
+@app.route('/stats/<ident>')
+def stats(ident):
+    plugin = plugins.get(ident)
+    if not hasattr(plugin, 'model'):
+        flask.abort(404)
+    return flask.render_template(
+        'stats.html',
+        plugin=plugin,
+        now=time.time(),
+        epoch=time.mktime(config['statscache.consumer.epoch'].timetuple())
+    )
+
+
 @app.route('/api/<ident>/layout')
 def plugin_layout(ident):
     """ Get the layout of the plugin """
